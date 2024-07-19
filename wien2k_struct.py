@@ -83,6 +83,7 @@ class StructureFile:
 
     @staticmethod
     def load_poscar(filepath):
+        # TODO:
         pass
 
     @staticmethod

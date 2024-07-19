@@ -135,13 +135,18 @@ class MaterialFolder:
         self.cmd.type(f"rm * -rf")
 
         # get and save the edited struct
-        tmp_path = f"{rng_string(32)}.struct"
+        tmp_path = f"{rng_string(32)}.poscar"
         with open(tmp_path, "w") as f:
-            f.write(self.structure.get_text())
+            f.write(self.structure.generate_poscar())
 
-        # ulpoad struct and remove temp file
-        self.scp.upload_file(tmp_path, f"{self.material}.struct")
+        # ulpoad poscar and remove temp file
+        self.scp.upload_file(tmp_path, f"{self.material}.poscar")
         os.remove(tmp_path)
+
+        # convert poscar to struct
+        self.cmd.type(f"xyz2struct < {self.material}.poscar")
+        self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
+        # TODO: add visual cehck for any questions
 
         # assess the high level location
         is_sp = params.raw_params["spin_polarized"]
@@ -213,7 +218,7 @@ class MaterialFolder:
             "inputs": {
                 "material_name": self.material,
                 "struct": {
-                    "plaintext": self.structure.get_text(),
+                    "plaintext": self.structure.generate_poscar(),
                     "tweaks_log": self.structure.get_logs(),
                 },
                 "init_lapw": params.text_params,
@@ -233,9 +238,11 @@ class MaterialFolder:
             "results": {
                 "fermi_energy_eV": fer_Ry * Constants.Ry_to_eV,
                 "energy_tot_eV": ene_Ry * Constants.Ry_to_eV,
+                "energy_per_cell_eV": ene_Ry * Constants.Ry_to_eV / self.structure.get_mutliples_count(),
                 "gap_eV": gap_Ry * Constants.Ry_to_eV,
                 "fermi_energy_Ry": fer_Ry,
                 "energy_tot_Ry": ene_Ry,
+                "energy_per_cell_Ry": ene_Ry / self.structure.get_mutliples_count(),
                 "gap_Ry": gap_Ry,
                 "MM_tot": float(
                     re.findall(r":MMTOT.+([- ]\d*\.\d*)", content)[-1]
@@ -267,6 +274,7 @@ class MaterialFolder:
         params: init_lapw_Parameters = None,
         params_so: init_so_lapw_Parameters = None,
         params_orb: UJ_Parameters = None,
+        auto_confirm = False
     ):
         if params == None:
             # ask if they want to put in the parameters manually
@@ -309,11 +317,14 @@ class MaterialFolder:
         self.cmd.cd(self.material)
 
         # here only remove old files and add a question before doing so
-        decision = Mbox(
-            "Run",
-            "Do you wish to proceed with the initialization process? This action will clear any files from old initializations.",
-            4,
-        )
+        if not auto_confirm:
+            decision = Mbox(
+                "Run",
+                "Do you wish to proceed with the initialization process? This action will clear any files from old initializations.",
+                4,
+            )
+        else:
+            decision = 6
 
         if decision == 6:
             self._run_safe(run_name, params, params_so, params_orb)
@@ -355,7 +366,6 @@ if __name__ == "__main__":
         6.334917000000000,
     )
     mn2as.tweak_cell_multiples(c=2)
-    print(mn2as.get_text())
 
     mf = MaterialFolder("./credentials.json", "Mn2As", structure = mn2as)
     mf.open()

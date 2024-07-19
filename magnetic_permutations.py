@@ -3,13 +3,13 @@ from wien2k import *
 # calculating magnetic orientation energies as per:
 # doi: 10.1021/ic3024716
 
-cr2as = StructureFile.load_materials_project(
-    "https://next-gen.materialsproject.org/materials/mp-20552?formula=Cr2As",
+mn2as = StructureFile.load_materials_project(
+    "https://next-gen.materialsproject.org/materials/mp-610522",
     "credentials.json",
 )
-cr2as.tweak_cell_multiples(c=2)
+mn2as.tweak_cell_multiples(c=2)
 
-mf = MaterialFolder("credentials.json", "Cr2As", structure=cr2as)
+mf = MaterialFolder("credentials.json", "Cr2As", structure=mn2as)
 mf.open()
 
 configs = {
