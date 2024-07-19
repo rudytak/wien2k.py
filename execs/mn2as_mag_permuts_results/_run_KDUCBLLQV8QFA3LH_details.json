@@ -1,0 +1,80 @@
+{
+    "name": "AF8",
+    "run_uid": "run_KDUCBLLQV8QFA3LH",
+    "completion_date": "18/07/2024 20:43:32",
+    "absolute_path": "Mn2As/sp1_so0_orb0/AF8/Mn2As",
+    "inputs": {
+        "material_name": "Mn2As",
+        "struct": {
+            "poscar": "Mn2As\n1.0 Ang\n3.6150150000000001 0.0000000000000002 0.0000000000000002\n0.0000000000000000 3.6150150000000001 0.0000000000000002\n0.0000000000000000 0.0000000000000000 12.6698339999999998\nMn As \n8 4 \nDirect\n0.5000000000000000 0.0000000000000000 0.1764090000000000 Mn\n0.5000000000000000 0.5000000000000000 0.0000000000000000 Mn\n0.0000000000000000 0.0000000000000000 0.0000000000000000 Mn\n0.0000000000000000 0.5000000000000000 0.3235910000000000 Mn\n0.5000000000000000 0.0000000000000000 0.6764090000000000 Mn\n0.5000000000000000 0.5000000000000000 0.5000000000000000 Mn\n0.0000000000000000 0.0000000000000000 0.5000000000000000 Mn\n0.0000000000000000 0.5000000000000000 0.8235910000000000 Mn\n0.5000000000000000 0.0000000000000000 0.3691630000000000 As\n0.0000000000000000 0.5000000000000000 0.1308370000000000 As\n0.5000000000000000 0.0000000000000000 0.8691630000000000 As\n0.0000000000000000 0.5000000000000000 0.6308370000000000 As\n",
+            "tweaks_log": "Cell multiples: (1,1,1) -> (1,1,2)"
+        },
+        "init_lapw": {
+            "reduction_percentage": "0",
+            "scheme": "N",
+            "accept_radii": "a",
+            "nearest_neighbor": "2",
+            "lstart_flag": "-ask",
+            "x_ask_flags_pattern": [
+                "d",
+                "u",
+                "d",
+                "u",
+                "d",
+                "d",
+                "u",
+                "u",
+                "n",
+                "n",
+                "n",
+                "n"
+            ],
+            "calculation_method": "13",
+            "separation_energy_eV": "-6.0",
+            "kpoints": "1000",
+            "x_kdensity": "0.1",
+            "kshift": "0",
+            "spin_polarized": "y",
+            "x_antiferromagnetic": "n"
+        },
+        "init_so_lapw": {},
+        "UJ": {
+            "U_eV": 0,
+            "J_eV": 0,
+            "atoms": []
+        }
+    },
+    "diagnostics": {
+        "cycles": 21,
+        "runtime": 2681.72,
+        "status": "success",
+        "end_stack": "LAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 20 ETEST: .0006878700000000 CTEST: .0255977 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 0111\nin cycle 21 ETEST: .0007016400000000 CTEST: .0161815 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 1111\n> stop\nsedlacek@serv\u2014031:~/Mn2As/sp1_so0_orb0/AF8/Mn2As$ cd .\nsedlacek@serv\u2014031:~/Mn2As/sp1_so0_orb0/AF8/Mn2As$ *C\nsedlacek@serv\u2014031:~/Mn2As/sp1_so0_orb0/AF8/Mn2As$ cd .\nsedlacek@serv\u2014031:~/Mn2As/sp1_so0_orb0/AF8/Mn2As$"
+    },
+    "results": {
+        "fermi_energy_eV": 9.067916380228201,
+        "energy_tot_eV": -498340.08076503745,
+        "energy_per_cell_eV": -249170.04038251872,
+        "gap_eV": 0.0,
+        "fermi_energy_Ry": 0.6664790294,
+        "energy_tot_Ry": -36627.29114525,
+        "energy_per_cell_Ry": -18313.645572625,
+        "gap_Ry": 0.0,
+        "MM_tot": 0.0,
+        "MM_tot_per_cell": 0.0,
+        "MM_intersticial": 0.0,
+        "MM_atoms": [
+            -3.18119,
+            2.32918,
+            -2.32919,
+            3.17742,
+            -3.17748,
+            -2.32395,
+            2.32396,
+            3.18125,
+            0.00575,
+            -0.00604,
+            0.00604,
+            -0.00575
+        ]
+    }
+}

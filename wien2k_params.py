@@ -205,13 +205,24 @@ class init_lapw_Parameters:
         MF.cmd.type(self.text_params["accept_radii"], 0.5)
         MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
         MF.cmd.type("^X", 1, do_ENTER=False)
+
+        if "DO YOU WANT TO USE THE NEW" in "\n".join(MF.cmd.read_output(10)):
+            MF.cmd.type("n", 0.5)
+
+            # TODO: get this working for cell simplification
+            # MF.cmd.type("y", 0.5)
+            # MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
+            # MF.cmd.type("^X", 1, do_ENTER=False)
+
         MF.cmd.type("c", 1)
         MF.cmd.type("^X", 1, do_ENTER=False)
         MF.cmd.type("c", 1)
         MF.cmd.type("^X", 1, do_ENTER=False)
         MF.cmd.type("c", 1)
 
-        
+        if "STOP: YOU MUST MOVE THE ORIGIN OF THE UNIT CELL" in "\n".join(MF.cmd.read_output(10)):
+            # TODO: moving around cell origin if necessary
+            pass
 
         MF.cmd.type(self.text_params["lstart_flag"], 0.5)
         if self.text_params["lstart_flag"] == "-ask":
