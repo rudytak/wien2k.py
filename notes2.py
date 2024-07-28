@@ -32,6 +32,7 @@ mf_info = {
 
 
 def time() -> int:
+    return time.time()
     pass
 
 def add_to_pq(obj: OBJ, nbf: int, on_finished_future: asyncio.Future) -> None:

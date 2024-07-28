@@ -2,9 +2,11 @@ from wien2_helper import *
 from wien2k_connection import *
 from wien2k_params import *
 from wien2k_struct import *
-
+from wien2k_magic import main as magic_main
 import time, re, json, timeit
 from datetime import datetime
+
+from typing import Tuple
 
 
 class MaterialFolder:
@@ -23,7 +25,7 @@ class MaterialFolder:
         else:
             raise Exception("No structure was given!")
 
-    def open(self):
+    def open(self) -> asyncio.Future:
         # connect to the server
         self.cmd = CMD_Window()
         self.scp = SCP_Connection(self.cmd, self.credentials_path)
@@ -37,22 +39,22 @@ class MaterialFolder:
         # make the material folder (if that folder already exists, it'll just be automatically ignored)
         self.cmd.home()
         self.cmd.type(f"mkdir {self.material}")
-        self.cmd.cd(f"{self.material}")
+        return self.cmd.cd(f"{self.material}")
 
     # ---------------- CLEANING AND EXITING ----------------
-    def clean(self):
-        self.cleanup_wien_scratch()
+    def clean(self) -> asyncio.Future:
+        return self.cleanup_wien_scratch()
 
-    def close(self):
+    def close(self) -> asyncio.Future:
         self.clean()
 
         self.ssh.disconnect()
         self.scp.disconnect()
 
-        self.cmd.kill()
+        return self.cmd.kill()
 
     # ---------------- WIEN SCRATCH ----------------
-    def make_wien_scratch(self):
+    def make_wien_scratch(self) -> asyncio.Future:
         # create wien2k scratch
         WS_basepath = "/home/sedlacek/"
         tmpdir_name = rng_string(16)
@@ -60,38 +62,38 @@ class MaterialFolder:
 
         self.cmd.type(f"mkdir {self.WS_tmppath}")
         self.cmd.type(f"export SCRATCH={self.WS_tmppath}")
-        self.cmd.type(f"export EDITOR=nano")
+        return self.cmd.type(f"export EDITOR=nano")
 
-    def cleanup_wien_scratch(self):
+    def cleanup_wien_scratch(self) -> asyncio.Future:
         self.cmd.home()
-        self.cmd.type(f"rm {self.WS_tmppath} -rf")
+        return self.cmd.type(f"rm {self.WS_tmppath} -rf")
 
     # ---------------- RUNNING SCF INTERNAL ----------------
 
-    def _await_lapw_end(self, timeout=60):
+    async def _await_lapw_end(self, timeout=15) -> Tuple[float, str]:
         # set the start time:
         start_time = timeit.default_timer()
         print(
-            "If the calculation finishes and the rest of the program is not able to recognise that, type 'manual_stop' into the ssh console to stop it manually and wait for the next check."
+            "If the calculation finishes and the rest of the program is not able to recognize that, type 'manual_stop' into the ssh console to stop it manually and wait for the next check."
         )
 
         while True:
             # wait for some time
-            time.sleep(timeout)
+            await asyncio.sleep(timeout)
 
             try:
                 # read the status of the screen
-                lines = self.cmd.read_output(5)
+                lines = await self.cmd.read_output(5)
                 lines = "\n".join(lines)
 
                 success_status = (
-                    (f"{self.material}$" in lines)
-                    and ("run_lapw" not in lines)
-                    or ("> stop" in lines)
-                )
-                not_converged_status = "SCF NOT CONVERGED" in lines
-                error_status = "stop error" in lines
-                manual_stop_status = "manual_stop" in lines
+                    does_text_contain(f"{self.material}$", lines, 85)
+                    and not does_text_contain("run_lapw", lines, 85)
+                    and not does_text_contain("runsp_lapw", lines, 85)
+                ) or does_text_contain("> stop", lines, 80)
+                not_converged_status = does_text_contain("SCF NOT CONVERGED", lines, 80)
+                error_status = does_text_contain("stop error", lines, 80)
+                manual_stop_status = does_text_contain("manual_stop", lines, 80)
 
                 if any(
                     [
@@ -117,60 +119,9 @@ class MaterialFolder:
                     end_time = timeit.default_timer()
                     return (round(end_time - start_time, 2), status)
             except:
-                # in case of an error of the reading, continue chacking
+                # in case of an error of the reading, continue checking
                 print("Error while waiting")
                 pass
-
-    def _run_safe(
-        self,
-        run_name,
-        params: init_lapw_Parameters = None,
-        params_so: init_so_lapw_Parameters = None,
-        params_orb: UJ_Parameters = None,
-    ):
-        run_uid = "run_" + rng_string(16)
-
-        # remove old files and upload the new struct file
-        self.cmd.bring_forward()
-        self.cmd.type(f"rm * -rf")
-
-        # get and save the edited struct
-        tmp_path = f"{rng_string(32)}.poscar"
-        with open(tmp_path, "w") as f:
-            f.write(self.structure.generate_poscar())
-
-        # ulpoad poscar and remove temp file
-        self.scp.upload_file(tmp_path, f"{self.material}.poscar")
-        os.remove(tmp_path)
-
-        # convert poscar to struct
-        self.cmd.type(f"xyz2struct < {self.material}.poscar")
-        self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
-        # TODO: add visual cehck for any questions
-
-        # assess the high level location
-        is_sp = params.raw_params["spin_polarized"]
-        is_orb = params_orb != None
-        is_so = params_so != None
-
-        # run all init processes
-        params.execute(self)
-        if is_so:
-            # inherit the sp and kpoints settings from init_lapw_Parameters
-            params_so = params_so.reinstantiate(params)
-            params_so.execute(self)
-        if is_orb:
-            params_orb.execute(self)
-
-        self.cmd.type(
-            f"run{'sp' if is_sp else ''}_lapw {'-so' if is_so else ''} {'-orb' if is_orb else ''}"
-        )
-        (runtime, status) = self._await_lapw_end()
-
-        self._save_run_diagnostics(
-            run_name, run_uid, status, runtime, params, params_so, params_orb
-        )
-        return run_uid
 
     def _save_run_diagnostics(
         self, run_name, run_uid, status, runtime, params, params_so, params_orb
@@ -186,7 +137,7 @@ class MaterialFolder:
         is_so = params_so != None
 
         # save run diagnostics
-        last_lines = self.cmd.read_output(32)
+        last_lines = self.cmd._read_output(32)
         stack = "\n".join(last_lines[::-1])
 
         def cycles_find(l):
@@ -238,7 +189,9 @@ class MaterialFolder:
             "results": {
                 "fermi_energy_eV": fer_Ry * Constants.Ry_to_eV,
                 "energy_tot_eV": ene_Ry * Constants.Ry_to_eV,
-                "energy_per_cell_eV": ene_Ry * Constants.Ry_to_eV / self.structure.get_mutliples_count(),
+                "energy_per_cell_eV": ene_Ry
+                * Constants.Ry_to_eV
+                / self.structure.get_mutliples_count(),
                 "gap_eV": gap_Ry * Constants.Ry_to_eV,
                 "fermi_energy_Ry": fer_Ry,
                 "energy_tot_Ry": ene_Ry,
@@ -266,16 +219,68 @@ class MaterialFolder:
 
         # TODO: output file structuring
 
-    # ---------------- RUNNING SCF ----------------
-
-    def manual_run(
+    async def _run_safe(
         self,
         run_name,
         params: init_lapw_Parameters = None,
         params_so: init_so_lapw_Parameters = None,
         params_orb: UJ_Parameters = None,
-        auto_confirm = False
-    ):
+    ) -> asyncio.Future:
+        run_uid = "run_" + rng_string(16)
+
+        # remove old files and upload the new struct file
+        self.cmd.bring_forward()
+        await self.cmd.type(f"rm * -rf")
+
+        # get and save the edited struct
+        tmp_path = f"{rng_string(32)}.poscar"
+        with open(tmp_path, "w") as f:
+            f.write(self.structure.generate_poscar())
+
+        # ulpoad poscar and remove temp file
+        self.scp.upload_file(tmp_path, f"{self.material}.poscar")
+        os.remove(tmp_path)
+
+        # convert poscar to struct
+        self.cmd.type(f"xyz2struct < {self.material}.poscar")
+        self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
+        # TODO: add visual check for any questions
+
+        # assess the high level location
+        is_sp = params.raw_params["spin_polarized"]
+        is_orb = params_orb != None
+        is_so = params_so != None
+
+        # run all init processes
+        # use await to ensure that the initialization is finished before running "run_lapw"
+        await params.execute(self)
+        if is_so:
+            # inherit the sp and kpoints settings from init_lapw_Parameters
+            # use await to ensure that the initialization is finished before running "run_lapw"
+            params_so = params_so.reinstantiate(params)
+            await params_so.execute(self)
+        if is_orb:
+            params_orb.execute(self)
+
+        await self.cmd.type(
+            f"run{'sp' if is_sp else ''}_lapw {'-so' if is_so else ''} {'-orb' if is_orb else ''}"
+        )
+        (runtime, status) = await self._await_lapw_end()
+
+        self._save_run_diagnostics(
+            run_name, run_uid, status, runtime, params, params_so, params_orb
+        )
+
+    # ---------------- RUNNING SCF ----------------
+
+    async def manual_run(
+        self,
+        run_name,
+        params: init_lapw_Parameters = None,
+        params_so: init_so_lapw_Parameters = None,
+        params_orb: UJ_Parameters = None,
+        auto_confirm=False,
+    ) -> asyncio.Future:
         if params == None:
             # ask if they want to put in the parameters manually
             decision = Mbox(
@@ -314,7 +319,7 @@ class MaterialFolder:
         self.cmd.cd(run_name)
 
         self.cmd.type(f"mkdir {self.material}")
-        self.cmd.cd(self.material)
+        await self.cmd.cd(self.material)
 
         # here only remove old files and add a question before doing so
         if not auto_confirm:
@@ -327,10 +332,10 @@ class MaterialFolder:
             decision = 6
 
         if decision == 6:
-            self._run_safe(run_name, params, params_so, params_orb)
+            await self._run_safe(run_name, params, params_so, params_orb)
 
         # return to the main material directory
-        self.cmd.cd("../../..")
+        return self.cmd.cd("../../..")
 
     # ---------------- PROCESSING ----------------
 
@@ -349,10 +354,10 @@ class MaterialFolder:
 
     # ---------------- OPTIMISATIONS / AUTOMATIZATIONS ----------------
 
-if __name__ == "__main__":
+
+async def run():
     mn2as = StructureFile(
         "Mn2As",
-        "P",
         [
             StructureAtom(0.0, 0.0, 0.0, 25),
             StructureAtom(0.5, 0.5, 0.0, 25),
@@ -365,8 +370,39 @@ if __name__ == "__main__":
         3.615015000000000,
         6.334917000000000,
     )
-    mn2as.tweak_cell_multiples(c=2)
+    # mn2as.tweak_cell_multiples(c=2)
 
-    mf = MaterialFolder("./credentials.json", "Mn2As", structure = mn2as)
-    mf.open()
-    mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))
+    mf1 = MaterialFolder("./credentials.json", "Mn2As_test1", structure=mn2as)
+    mf2 = MaterialFolder("./credentials.json", "Mn2As_test2", structure=mn2as)
+    mf3 = MaterialFolder("./credentials.json", "Mn2As_test3", structure=mn2as)
+    mf4 = MaterialFolder("./credentials.json", "Mn2As_test4", structure=mn2as)
+    mf5 = MaterialFolder("./credentials.json", "Mn2As_test5", structure=mn2as)
+    mf6 = MaterialFolder("./credentials.json", "Mn2As_test6", structure=mn2as)
+
+    corroutines = []
+
+    async def f(_mf):
+        await _mf.open()
+        await _mf.manual_run(
+            "F",
+            init_lapw_Parameters(
+                kpoints=100,
+                spin_polarized=True,
+                lstart_flag="-ask",
+                x_ask_flags_pattern=["u"],
+            ),
+            auto_confirm=True,
+        )
+        await _mf.close()
+
+    for mf in [mf1, mf2, mf3, mf4]:
+        corroutines.append(f(mf))
+
+    await asyncio.gather(*corroutines)
+
+async def main():
+    await asyncio.gather(run(), CMD_input.handler_loop())
+
+if __name__ == "__main__":
+    magic_main()
+    asyncio.run(main())

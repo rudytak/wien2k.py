@@ -1,6 +1,7 @@
 # message box
 import ctypes
 import string, random, re, sys, itertools
+from thefuzz import fuzz
 
 TESSERACT_PATH = "C:/Program Files/Tesseract-OCR/tesseract.exe"
 WINDOWS_LINE_ENDING = b"\r\n"
@@ -95,3 +96,14 @@ def nested_regex_replace(
             break
 
     return text, replace_index
+
+
+def does_text_contain(checked_text, source_text, certainty = 80):
+    fuzzy_certainty = fuzz.partial_ratio(source_text, checked_text.lower())
+    
+    return fuzzy_certainty >= certainty
+
+async def does_console_contain(checked_text, cmd, lines_count=10, certainty=80):
+    console_content = ("\n".join(await cmd.read_output(lines_count))).lower()
+    
+    return does_text_contain(checked_text, console_content, certainty)

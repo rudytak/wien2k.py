@@ -1,6 +1,6 @@
 from wien2_helper import *
 
-import os, time
+import os, time, asyncio
 
 class init_lapw_Parameters:
     CALC_METHOD_DICT = {
@@ -194,37 +194,38 @@ class init_lapw_Parameters:
                     # set to default
                     self.text_params[k] = str(init_lapw_Parameters.DEFAULTS[k])
 
-    def execute(self, MF, do_restart = False):
-        MF.cmd.type(f"init_lapw -m", 1)
+    async def execute(self, MF, do_restart=False) -> asyncio.Future:
+        MF.cmd.type(f"init_lapw -m")
 
-        if(do_restart):
-            MF.cmd.type("r", 0.5)
+        if do_restart:
+            MF.cmd.type("r")
 
-        MF.cmd.type(self.text_params["reduction_percentage"], 0.5)
-        MF.cmd.type(self.text_params["scheme"], 0.5)
-        MF.cmd.type(self.text_params["accept_radii"], 0.5)
-        MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-
-        if "DO YOU WANT TO USE THE NEW" in "\n".join(MF.cmd.read_output(10)):
-            MF.cmd.type("n", 0.5)
+        MF.cmd.type(self.text_params["reduction_percentage"])
+        MF.cmd.type(self.text_params["scheme"])
+        MF.cmd.type(self.text_params["accept_radii"])
+        MF.cmd.type(self.text_params["nearest_neighbor"])
+        MF.cmd.type("^X", do_ENTER=False)
+        
+        if await does_console_contain("use the new", MF.cmd, 5, 80):
+            MF.cmd.type("n")
 
             # TODO: get this working for cell simplification
-            # MF.cmd.type("y", 0.5)
-            # MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
-            # MF.cmd.type("^X", 1, do_ENTER=False)
+            # MF.cmd.type("y")
+            # MF.cmd.type(self.text_params["nearest_neighbor"])
+            # MF.cmd.type("^X", do_ENTER=False)
 
-        MF.cmd.type("c", 1)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
+        MF.cmd.type("c")
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("c")
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("c")
 
-        if "STOP: YOU MUST MOVE THE ORIGIN OF THE UNIT CELL" in "\n".join(MF.cmd.read_output(10)):
+        if await does_console_contain("move the origin", MF.cmd, 5, 80):
             # TODO: moving around cell origin if necessary
+            # that is only if we say yes to using the newly generated cell simplification
             pass
 
-        MF.cmd.type(self.text_params["lstart_flag"], 0.5)
+        MF.cmd.type(self.text_params["lstart_flag"])
         if self.text_params["lstart_flag"] == "-ask":
             for i in range(MF.structure.non_eq_count):
                 MF.cmd.type(
@@ -233,26 +234,28 @@ class init_lapw_Parameters:
                     ],
                     0.2,
                 )
-        MF.cmd.type(self.text_params["calculation_method"], 0.5)
-        MF.cmd.type(self.text_params["separation_energy_eV"], 0.5)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+        MF.cmd.type(self.text_params["calculation_method"])
+        MF.cmd.type(self.text_params["separation_energy_eV"])
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("c")
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("^X", do_ENTER=False)
 
-        MF.cmd.type(self.text_params["kpoints"], 0.5)
+        MF.cmd.type(self.text_params["kpoints"])
         if self.text_params["kpoints"] == "-1":
-            MF.cmd.type(self.text_params["x_kdensity"], 0.5)
-        MF.cmd.type(self.text_params["kshift"], 0.5)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+            MF.cmd.type(self.text_params["x_kdensity"])
+        MF.cmd.type(self.text_params["kshift"])
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("c")
+        MF.cmd.type("^X", do_ENTER=False)
 
-        MF.cmd.type(self.text_params["spin_polarized"], 0.5)
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+        MF.cmd.type(self.text_params["spin_polarized"])
+        MF.cmd.type("^X", do_ENTER=False)
+        last_future = MF.cmd.type("^X", do_ENTER=False)
         if self.text_params["spin_polarized"] == "y":
-            MF.cmd.type(self.text_params["x_antiferromagnetic"], 0.5)
+            last_future = MF.cmd.type(self.text_params["x_antiferromagnetic"])
+
+        return last_future
 
 
 class init_so_lapw_Parameters:
@@ -386,16 +389,16 @@ class init_so_lapw_Parameters:
             init_lapw_params=replacement_init_lapw_params,
         )
 
-    def execute(self, MF):
-        MF.cmd.type(f"init_so_lapw", 1)
+    def execute(self, MF) -> asyncio.Future:
+        MF.cmd.type(f"init_so_lapw")
 
         MF.cmd.type(
             f"{self.text_params['h']} {self.text_params['k']} {self.text_params['l']}",
             0.5,
         )
-        MF.cmd.type(self.text_params["ignored_atoms"], 0.5)
-        MF.cmd.type(self.text_params["EMAX"], 0.5)
-        MF.cmd.type(self.text_params["RLOs"], 0.5)
+        MF.cmd.type(self.text_params["ignored_atoms"])
+        MF.cmd.type(self.text_params["EMAX"])
+        MF.cmd.type(self.text_params["RLOs"])
 
         if self.text_params["RLOs"] == "c":
             for i in range(MF.structure.non_eq_count):
@@ -405,18 +408,20 @@ class init_so_lapw_Parameters:
                     ],
                     0.2,
                 )
-        MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+        MF.cmd.type("^X", do_ENTER=False)
+        MF.cmd.type("^X", do_ENTER=False)
 
-        MF.cmd.type(self.text_params["spin_polarized"], 0.5)
+        last_future = MF.cmd.type(self.text_params["spin_polarized"])
         if self.text_params["spin_polarized"] == "y":
-            MF.cmd.type("^X", 1, do_ENTER=False)
-            MF.cmd.type(self.text_params["x_use_SO_structure"], 0.5)
+            MF.cmd.type("^X", do_ENTER=False)
+            last_future = MF.cmd.type(self.text_params["x_use_SO_structure"])
 
             if self.text_params["x_use_SO_structure"] == "y":
-                MF.cmd.type(self.text_params["x__kpoints"], 0.5)
-                MF.cmd.type("^X", 1, do_ENTER=False)
-                MF.cmd.type("n", 0.5)
+                MF.cmd.type(self.text_params["x__kpoints"])
+                MF.cmd.type("^X", do_ENTER=False)
+                last_future = MF.cmd.type("n")
+
+        return last_future
 
 
 class UJ_Parameters:
@@ -488,14 +493,14 @@ class UJ_Parameters:
                 "\n".join(
                     lmap(
                         parsed_atoms,
-                        lambda at:  f'{at["index"]} {len(at["orbitals"])} {" ".join(at["orbitals"])}',
+                        lambda at: f'{at["index"]} {len(at["orbitals"])} {" ".join(at["orbitals"])}',
                     )
                 ),
                 f"  {nsic}",
                 "\n".join(
                     lmap(
                         parsed_atoms,
-                        lambda at:  f"{self.U * Constants.eV_to_Ry} {self.J * Constants.eV_to_Ry}             U J (Ry)",
+                        lambda at: f"{self.U * Constants.eV_to_Ry} {self.J * Constants.eV_to_Ry}             U J (Ry)",
                     )
                 ),
             ]
