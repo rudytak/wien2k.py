@@ -242,7 +242,10 @@ class MaterialFolder:
         os.remove(tmp_path)
 
         # convert poscar to struct
-        self.cmd.type(f"xyz2struct < {self.material}.poscar")
+        self.cmd.type(f"xyz2struct < {self.material}.poscar 1e-9")
+        while await does_console_contain("be exactly", self.cmd, 2, 80):
+            self.cmd.type(f"n")
+
         self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
         # TODO: add visual check for any questions
 
