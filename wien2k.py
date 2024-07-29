@@ -2,7 +2,7 @@ from wien2_helper import *
 from wien2k_connection import *
 from wien2k_params import *
 from wien2k_struct import *
-from wien2k_magic import main as magic_main
+
 import time, re, json, timeit
 from datetime import datetime
 
@@ -354,55 +354,59 @@ class MaterialFolder:
 
     # ---------------- OPTIMISATIONS / AUTOMATIZATIONS ----------------
 
-
-async def run():
-    mn2as = StructureFile(
-        "Mn2As",
-        [
-            StructureAtom(0.0, 0.0, 0.0, 25),
-            StructureAtom(0.5, 0.5, 0.0, 25),
-            StructureAtom(0.5, 0.0, 0.3528180000000001, 25),
-            StructureAtom(0.0, 0.5, 0.6471819999999999, 25),
-            StructureAtom(0.5, 0.0, 0.7383260000000001, 33),
-            StructureAtom(0.0, 0.5, 0.2616739999999999, 33),
-        ],
-        3.615015000000000,
-        3.615015000000000,
-        6.334917000000000,
-    )
-    # mn2as.tweak_cell_multiples(c=2)
-
-    mf1 = MaterialFolder("./credentials.json", "Mn2As_test1", structure=mn2as)
-    mf2 = MaterialFolder("./credentials.json", "Mn2As_test2", structure=mn2as)
-    mf3 = MaterialFolder("./credentials.json", "Mn2As_test3", structure=mn2as)
-    mf4 = MaterialFolder("./credentials.json", "Mn2As_test4", structure=mn2as)
-    mf5 = MaterialFolder("./credentials.json", "Mn2As_test5", structure=mn2as)
-    mf6 = MaterialFolder("./credentials.json", "Mn2As_test6", structure=mn2as)
-
-    corroutines = []
-
-    async def f(_mf):
-        await _mf.open()
-        await _mf.manual_run(
-            "F",
-            init_lapw_Parameters(
-                kpoints=100,
-                spin_polarized=True,
-                lstart_flag="-ask",
-                x_ask_flags_pattern=["u"],
-            ),
-            auto_confirm=True,
-        )
-        await _mf.close()
-
-    for mf in [mf1, mf2, mf3, mf4]:
-        corroutines.append(f(mf))
-
-    await asyncio.gather(*corroutines)
-
-async def main():
-    await asyncio.gather(run(), CMD_input.handler_loop())
+async def wien2k_main(coroutines_to_run=[]):
+    await asyncio.gather(*coroutines_to_run, CMD_input.handler_loop())
 
 if __name__ == "__main__":
-    magic_main()
-    asyncio.run(main())
+    async def run():
+        mn2as = StructureFile(
+            "Mn2As",
+            [
+                StructureAtom(0.0, 0.0, 0.0, 25),
+                StructureAtom(0.5, 0.5, 0.0, 25),
+                StructureAtom(0.5, 0.0, 0.3528180000000001, 25),
+                StructureAtom(0.0, 0.5, 0.6471819999999999, 25),
+                StructureAtom(0.5, 0.0, 0.7383260000000001, 33),
+                StructureAtom(0.0, 0.5, 0.2616739999999999, 33),
+            ],
+            3.615015000000000,
+            3.615015000000000,
+            6.334917000000000,
+        )
+        # mn2as.tweak_cell_multiples(c=2)
+
+        mf1 = MaterialFolder("./credentials.json", "Mn2As_test1", structure=mn2as)
+        mf2 = MaterialFolder("./credentials.json", "Mn2As_test2", structure=mn2as)
+        mf3 = MaterialFolder("./credentials.json", "Mn2As_test3", structure=mn2as)
+        mf4 = MaterialFolder("./credentials.json", "Mn2As_test4", structure=mn2as)
+        mf5 = MaterialFolder("./credentials.json", "Mn2As_test5", structure=mn2as)
+        mf6 = MaterialFolder("./credentials.json", "Mn2As_test6", structure=mn2as)
+
+        corroutines = []
+
+        async def f(_mf):
+            await _mf.open()
+            await _mf.manual_run(
+                "F",
+                init_lapw_Parameters(
+                    kpoints=100,
+                    spin_polarized=True,
+                    lstart_flag="-ask",
+                    x_ask_flags_pattern=["u"],
+                ),
+                auto_confirm=True,
+            )
+            await _mf.close()
+
+        for mf in [mf1, mf2, mf3, mf4]:
+            corroutines.append(f(mf))
+
+        await asyncio.gather(*corroutines)
+
+    asyncio.run(
+        wien2k_main(
+            [
+                run()
+            ]
+        )
+    )
