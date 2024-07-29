@@ -75,7 +75,7 @@ async def Cr2As_mag_permutations():
         "AF10": ["u", "u", "d", "u", "d", "d", "u", "d"] + ["n"] * 4,
     }
 
-    async def prepMF(_mf, name, init_lapw):
+    async def runMF(_mf, name, init_lapw):
         await _mf.open()
         await _mf.manual_run(
             name, init_lapw,
@@ -83,9 +83,8 @@ async def Cr2As_mag_permutations():
         )
         await _mf.close()
 
-    coroutines = []
     for key in configs.keys():
-        coroutines.append(prepMF(
+        await runMF(
             MaterialFolder("credentials.json", "Cr2As", structure=cr2as),
             key,
             init_lapw_Parameters(
@@ -94,9 +93,7 @@ async def Cr2As_mag_permutations():
                 lstart_flag="ask",
                 x_ask_flags_pattern=configs[key],
             )
-        ))
-
-    await asyncio.gather(*coroutines)
+        )
 
 asyncio.run(
     wien2k_main(

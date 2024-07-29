@@ -80,7 +80,6 @@ class CMD_input:
                 continue
 
             time_to_wait = max(entry.nbf - time.time(), CMD_input.handler_min_command_timeout)
-            print(time_to_wait)
             await asyncio.sleep(time_to_wait)
 
             # execute the action
