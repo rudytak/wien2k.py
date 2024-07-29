@@ -350,7 +350,7 @@ class MaterialFolder:
     # ---------------- OPTIMISATIONS / AUTOMATIZATIONS ----------------
 
 if __name__ == "__main__":
-    mn2as = StructureFile(
+    cr2as = StructureFile(
         "Mn2As",
         "P",
         [
@@ -365,8 +365,8 @@ if __name__ == "__main__":
         3.615015000000000,
         6.334917000000000,
     )
-    mn2as.tweak_cell_multiples(c=2)
+    cr2as.tweak_cell_multiples(c=2)
 
-    mf = MaterialFolder("./credentials.json", "Mn2As", structure = mn2as)
+    mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
     mf.open()
     mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))
