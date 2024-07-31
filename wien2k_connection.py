@@ -165,6 +165,7 @@ class SCP_Connection:
                 f"ssh {cred['username1']}@{cred['host1']} -L {port}:{cred['host2']}:22",
                 1,
             )
+            cmd_win.type(cred['password1'])
             SCP_Connection.windows[cred["host1"]] = cmd_win
 
         # return the port of the running proxy

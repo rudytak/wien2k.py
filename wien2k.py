@@ -145,6 +145,9 @@ class MaterialFolder:
 
         # convert poscar to struct
         self.cmd.type(f"xyz2struct < {self.material}.poscar")
+        while "be exactly" in "\n".join(self.cmd.read_output(2)):
+            self.cmd.type("n")
+        
         self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
         # TODO: add visual cehck for any questions
 
