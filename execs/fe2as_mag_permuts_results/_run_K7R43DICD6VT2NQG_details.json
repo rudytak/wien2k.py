@@ -1,0 +1,62 @@
+{
+  "name": "AF5",
+  "run_uid": "run_K7R43DICD6VT2NQG",
+  "completion_date": "03/08/2024 18:19:37",
+  "absolute_path": "Fe2As/sp1_so0_orb0/AF5/Fe2As",
+  "inputs": {
+    "material_name": "Fe2As",
+    "struct": {
+      "plaintext": "Fe2As\n1.0 Ang\n3.6638180000000000 0.0000000000000002 0.0000000000000002\n0.0000000000000000 3.6638180000000000 0.0000000000000002\n0.0000000000000000 0.0000000000000000 11.6174099999999996\nFe As \n8 4 \nDirect\n0.0000000000000000 0.5000000000000000 0.3411205000000000 Fe\n0.5000000000000000 0.0000000000000000 0.1588795000000000 Fe\n0.5000000000000000 0.5000000000000000 0.0000000000000000 Fe\n0.0000000000000000 0.0000000000000000 0.0000000000000000 Fe\n0.0000000000000000 0.5000000000000000 0.8411204999999999 Fe\n0.5000000000000000 0.0000000000000000 0.6588795000000001 Fe\n0.5000000000000000 0.5000000000000000 0.5000000000000000 Fe\n0.0000000000000000 0.0000000000000000 0.5000000000000000 Fe\n0.0000000000000000 0.5000000000000000 0.1325520000000000 As\n0.5000000000000000 0.0000000000000000 0.3674480000000000 As\n0.0000000000000000 0.5000000000000000 0.6325520000000000 As\n0.5000000000000000 0.0000000000000000 0.8674480000000000 As\n",
+      "tweaks_log": "Cell multiples: (1,1,1) -> (1,1,2)"
+    },
+    "init_lapw": {
+      "reduction_percentage": "0",
+      "scheme": "N",
+      "accept_radii": "a",
+      "nearest_neighbor": "2",
+      "lstart_flag": "-ask",
+      "x_ask_flags_pattern": [
+        "d",
+        "u",
+        "d",
+        "u",
+        "d",
+        "u",
+        "d",
+        "u",
+        "n",
+        "n",
+        "n",
+        "n"
+      ],
+      "calculation_method": "13",
+      "separation_energy_eV": "-6.0",
+      "kpoints": "1000",
+      "x_kdensity": "0.1",
+      "kshift": "0",
+      "spin_polarized": "y",
+      "x_antiferromagnetic": "n"
+    },
+    "init_so_lapw": {},
+    "UJ": { "U_eV": 0, "J_eV": 0, "atoms": [] }
+  },
+  "diagnostics": {
+    "cycles": 21,
+    "runtime": 2671.56,
+    "status": "success",
+    "end_stack": "LAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 20 ETEST: .0010845650000000 CTEST: .0790137 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 21 ETEST: .0004399550000000 CTEST: .0584496 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 1111\n> stop\nsedlacek@serv-031:~/Fe2As/sp1_so0_orb0/AF5/Fe2As$ cd .\nsedlacek@serv\u2014031:~/Fe2As/sp1_so0_orb0/AF5/Fe2As$ \u201c\u00b0C\nsedlacek@serv\u2014031:~/Fe2As/sp1_so0_orb0/AF5/Fe2As$ cd .\nsedlacek@serv\u2014031:~/Fe2As/sp1_so0_orb0/AF5/Fe2As$"
+  },
+  "results": {
+    "fermi_energy_eV": 9.326366587305992,
+    "energy_tot_eV": -523187.4546105154,
+    "energy_per_cell_eV": -261593.7273052577,
+    "gap_eV": 0.0,
+    "fermi_energy_Ry": 0.6854747541,
+    "energy_tot_Ry": -38453.53798182,
+    "energy_per_cell_Ry": -19226.76899091,
+    "gap_Ry": 0.0,
+    "MM_tot": 4e-5,
+    "MM_intersticial": -0.0,
+    "MM_atoms": []
+  }
+}

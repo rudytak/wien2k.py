@@ -4,21 +4,21 @@ from wien2k import *
 # doi: 10.1021/ic3024716
 
 cr2as = StructureFile.load_materials_project(
-    "https://next-gen.materialsproject.org/materials/mp-20552",
+    "https://next-gen.materialsproject.org/materials/mp-20426",
     "credentials.json",
 )
 cr2as.tweak_cell_multiples(c=2)
 
-mf = MaterialFolder("credentials.json", "Cr2As", structure=cr2as)
+mf = MaterialFolder("credentials.json", "Fe2As", structure=cr2as)
 mf.open()
 
 configs = {
-    "F": ["u"] * 8 + ["n"] * 4,
-    "Fi": ["d", "u", "u", "d"] * 2 + ["n"] * 4,
-    "AF1": ["u"] * 4 + ["d"] * 4 + ["n"] * 4,
-    "AF2": ["d", "u", "u", "u", "d", "d", "d", "u"] + ["n"] * 4,
-    "AF3": ["d", "u", "u", "u", "u", "d", "d", "d"] + ["n"] * 4,
-    "AF4": ["u", "u", "u", "d", "d", "d", "d", "u"] + ["n"] * 4,
+    # "F": ["u"] * 8 + ["n"] * 4,
+    # "Fi": ["d", "u", "u", "d"] * 2 + ["n"] * 4,
+    # "AF1": ["u"] * 4 + ["d"] * 4 + ["n"] * 4,
+    # "AF2": ["d", "u", "u", "u", "d", "d", "d", "u"] + ["n"] * 4,
+    # "AF3": ["d", "u", "u", "u", "u", "d", "d", "d"] + ["n"] * 4,
+    # "AF4": ["u", "u", "u", "d", "d", "d", "d", "u"] + ["n"] * 4,
     "AF5": ["d", "u"] * 4 + ["n"] * 4,
     "AF6": ["d", "u"] * 2 + ["u", "u", "d", "d"] + ["n"] * 4,
     "AF7": ["u", "u", "d", "u", "d", "u", "d", "d"] + ["n"] * 4,
@@ -29,13 +29,23 @@ configs = {
 
 for key in configs.keys():
     mf.manual_run(
-        key,
+        key + "_U=3",
         init_lapw_Parameters(
             kpoints=1000,
             spin_polarized=True,
             lstart_flag="ask",
             x_ask_flags_pattern=configs[key],
         ),
+        params_orb = UJ_Parameters(3, 0, [
+            UJ_Parameters.atom(1, ["d"]),
+            UJ_Parameters.atom(2, ["d"]),
+            UJ_Parameters.atom(3, ["d"]),
+            UJ_Parameters.atom(4, ["d"]),
+            UJ_Parameters.atom(5, ["d"]),
+            UJ_Parameters.atom(6, ["d"]),
+            UJ_Parameters.atom(7, ["d"]),
+            UJ_Parameters.atom(8, ["d"])
+        ]),
         auto_confirm=True,
     )
 mf.close()

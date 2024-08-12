@@ -68,12 +68,13 @@ class MaterialFolder:
 
     # ---------------- RUNNING SCF INTERNAL ----------------
 
-    def _await_lapw_end(self, timeout=60):
+    def _await_lapw_end(self, timeout=60, min_time=10*60):
         # set the start time:
         start_time = timeit.default_timer()
         print(
             "If the calculation finishes and the rest of the program is not able to recognise that, type 'manual_stop' into the ssh console to stop it manually and wait for the next check."
         )
+        time.sleep(min_time)
 
         while True:
             # wait for some time
@@ -216,7 +217,7 @@ class MaterialFolder:
         run_details = {
             "name": run_name,
             "run_uid": run_uid,
-            "competion_date": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+            "completion_date": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
             "absolute_path": self.cmd.curr_dir,
             "inputs": {
                 "material_name": self.material,
@@ -372,4 +373,4 @@ if __name__ == "__main__":
 
     mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
     mf.open()
-    mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))
+    # mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))
