@@ -13,12 +13,12 @@ mf = MaterialFolder("credentials.json", "Fe2As", structure=cr2as)
 mf.open()
 
 configs = {
-    # "F": ["u"] * 8 + ["n"] * 4,
-    # "Fi": ["d", "u", "u", "d"] * 2 + ["n"] * 4,
-    # "AF1": ["u"] * 4 + ["d"] * 4 + ["n"] * 4,
-    # "AF2": ["d", "u", "u", "u", "d", "d", "d", "u"] + ["n"] * 4,
-    # "AF3": ["d", "u", "u", "u", "u", "d", "d", "d"] + ["n"] * 4,
-    # "AF4": ["u", "u", "u", "d", "d", "d", "d", "u"] + ["n"] * 4,
+    "F": ["u"] * 8 + ["n"] * 4,
+    "Fi": ["d", "u", "u", "d"] * 2 + ["n"] * 4,
+    "AF1": ["u"] * 4 + ["d"] * 4 + ["n"] * 4,
+    "AF2": ["d", "u", "u", "u", "d", "d", "d", "u"] + ["n"] * 4,
+    "AF3": ["d", "u", "u", "u", "u", "d", "d", "d"] + ["n"] * 4,
+    "AF4": ["u", "u", "u", "d", "d", "d", "d", "u"] + ["n"] * 4,
     "AF5": ["d", "u"] * 4 + ["n"] * 4,
     "AF6": ["d", "u"] * 2 + ["u", "u", "d", "d"] + ["n"] * 4,
     "AF7": ["u", "u", "d", "u", "d", "u", "d", "d"] + ["n"] * 4,
@@ -29,14 +29,14 @@ configs = {
 
 for key in configs.keys():
     mf.manual_run(
-        key + "_U=3",
+        key + "_U=4",
         init_lapw_Parameters(
             kpoints=1000,
             spin_polarized=True,
             lstart_flag="ask",
             x_ask_flags_pattern=configs[key],
         ),
-        params_orb = UJ_Parameters(3, 0, [
+        params_orb = UJ_Parameters(4, 0, [
             UJ_Parameters.atom(1, ["d"]),
             UJ_Parameters.atom(2, ["d"]),
             UJ_Parameters.atom(3, ["d"]),
