@@ -354,23 +354,22 @@ class MaterialFolder:
     # ---------------- OPTIMISATIONS / AUTOMATIZATIONS ----------------
 
 if __name__ == "__main__":
-    cr2as = StructureFile(
+    mn2as = StructureFile(
         "Mn2As",
-        "P",
         [
-            StructureAtom(0.0, 0.0, 0.0, 25),
-            StructureAtom(0.5, 0.5, 0.0, 25),
-            StructureAtom(0.5, 0.0, 0.3528180000000001, 25),
-            StructureAtom(0.0, 0.5, 0.6471819999999999, 25),
-            StructureAtom(0.5, 0.0, 0.7383260000000001, 33),
-            StructureAtom(0.0, 0.5, 0.2616739999999999, 33),
+            StructureAtom(0.0, 0.0, 0.0, 25, 1.4),
+            StructureAtom(0.5, 0.5, 0.0, 25, 1.4),
+            StructureAtom(0.5, 0.0, 0.3528180000000001, 25, 0.7),
+            StructureAtom(0.0, 0.5, 0.6471819999999999, 25, 0.7),
+            StructureAtom(0.5, 0.0, 0.7383260000000001, 33, -1.6),
+            StructureAtom(0.0, 0.5, 0.2616739999999999, 33, -1.6),
         ],
         3.615015000000000,
         3.615015000000000,
         6.334917000000000,
     )
-    cr2as.tweak_cell_multiples(c=2)
+    (isPT, center) = mn2as.determine_PT_symmetry()
 
-    mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
-    mf.open()
+    # mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
+    # mf.open()
     # mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))

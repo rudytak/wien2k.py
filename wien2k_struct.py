@@ -15,6 +15,7 @@ class StructureAtom:
         y,
         z,
         Z,
+        mag_vec = 1
     ):
         self.x = x
         self.y = y
@@ -22,8 +23,19 @@ class StructureAtom:
 
         self.Z = Z
 
+        if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
+            self.mag_vec = (mag_vec, 0, 0)
+        elif type(mag_vec) == type((1,0,0)) or type(mag_vec) == type([1,0,0]):
+            self.mag_vec = (mag_vec[0], mag_vec[1], mag_vec[2])
+
     def get_symbol(self):
         return mendeleev.element(int(self.Z)).symbol
+    
+    def get_type_id(self):
+        return f"<wien2k_struct.StructureAtom {self.Z} {self.mag_vec[0]} {self.mag_vec[1]} {self.mag_vec[2]}>"
+    
+    def copy(self):
+        return StructureAtom(self.x, self.y, self.z, self.Z, self.mag_vec)
 
     def __repr__(self):
         return f"<wien2k_struct.StructureAtom {self.x} {self.y} {self.z} {self.Z}>"
@@ -36,6 +48,7 @@ class StructureFile:
 
     # --------------- CREATION ---------------
     # all in angstroms
+    # all atoms must be included
 
     def __init__(
         self,
@@ -275,3 +288,57 @@ class StructureFile:
         if do_print:
             print(self.get_logs(do_print=False))
         return "\n".join(self.tweak_logs)
+
+    # --------------- PT symmetry ---------------
+
+    def determine_PT_symmetry(self, eps = 1e-4):
+        isPT = False
+        center = None
+
+        # generate all atoms that fit in the cell bounding box
+        # and group them by equivalence
+        atom_groups = {}
+
+        for a in self.atoms:
+            for x_off in [-1, 0, 1]:
+                for y_off in [-1, 0, 1]:
+                    for z_off in [-1, 0, 1]:
+                        if (
+                            a.x + x_off > 0.0 - eps and
+                            a.x + x_off < 1.0 + eps and
+                            a.y + y_off > 0.0 - eps and
+                            a.y + y_off < 1.0 + eps and
+                            a.z + z_off > 0.0 - eps and
+                            a.z + z_off < 1.0 + eps
+                        ):
+                            if a.get_type_id() not in atom_groups:
+                                atom_groups[a.get_type_id()] = []
+                            atom_groups[a.get_type_id()].append(
+                                StructureAtom(
+                                    a.x + x_off,
+                                    a.y + y_off,
+                                    a.z + z_off,
+                                    a.Z,
+                                    a.mag_vec
+                                )
+                            )
+                        
+        #
+        print(lmap(atom_groups.keys(), lambda k: (k, atom_groups[k].__len__())))
+
+        for group_key in atom_groups.keys():
+            group = atom_groups[group_key]
+
+            for at1 in group:
+                for at2 in group:
+                    if at1 != at2:
+                        possible_center = (
+                            (at1.x + at2.x)/2,
+                            (at1.y + at2.y)/2,
+                            (at1.z + at2.z)/2
+                        )
+
+                        
+
+
+        return (isPT, center)
