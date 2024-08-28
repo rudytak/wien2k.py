@@ -357,18 +357,17 @@ if __name__ == "__main__":
     mn2as = StructureFile(
         "Mn2As",
         [
-            StructureAtom(0.0, 0.0, 0.0, 25, 1.4),
-            StructureAtom(0.5, 0.5, 0.0, 25, 1.4),
-            StructureAtom(0.5, 0.0, 0.3528180000000001, 25, 0.7),
-            StructureAtom(0.0, 0.5, 0.6471819999999999, 25, 0.7),
-            StructureAtom(0.5, 0.0, 0.7383260000000001, 33, -1.6),
-            StructureAtom(0.0, 0.5, 0.2616739999999999, 33, -1.6),
+            StructureAtom(0.0, 0.0, 0.0, 25, 1.0),
+            StructureAtom(0.5, 0.5, 0.5, 25, -1.0),
+            StructureAtom(0.25, 0.25, 0.25, 26, 0),
+            StructureAtom(0.75, 0.75, 0.75, 26, 0),
         ],
         3.615015000000000,
         3.615015000000000,
         6.334917000000000,
     )
-    (isPT, center) = mn2as.determine_PT_symmetry()
+    (isPT, centers) = mn2as.determine_PT_symmetry()
+    print(isPT, centers)
 
     # mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
     # mf.open()

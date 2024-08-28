@@ -293,7 +293,7 @@ class StructureFile:
 
     def determine_PT_symmetry(self, eps = 1e-4):
         isPT = False
-        center = None
+        centers = set()
 
         # generate all atoms that fit in the cell bounding box
         # and group them by equivalence
@@ -311,20 +311,62 @@ class StructureFile:
                             a.z + z_off > 0.0 - eps and
                             a.z + z_off < 1.0 + eps
                         ):
-                            if a.get_type_id() not in atom_groups:
-                                atom_groups[a.get_type_id()] = []
-                            atom_groups[a.get_type_id()].append(
-                                StructureAtom(
-                                    a.x + x_off,
-                                    a.y + y_off,
-                                    a.z + z_off,
-                                    a.Z,
-                                    a.mag_vec
-                                )
+                            if a.Z not in atom_groups:
+                                atom_groups[a.Z] = []
+                                
+                            new_a = StructureAtom(
+                                a.x + x_off,
+                                a.y + y_off,
+                                a.z + z_off,
+                                a.Z,
+                                a.mag_vec
                             )
+                            atom_groups[a.Z].append(new_a)
                         
         #
         print(lmap(atom_groups.keys(), lambda k: (k, atom_groups[k].__len__())))
+
+        # function to check if the atoms after a P_xyz around a origin and T transformations are the same:
+        def PT_check(origin, _atoms):
+            orig_atoms = _atoms
+            transformed_atoms = lmap(_atoms, lambda a: StructureAtom(
+                2*origin[0] - a.x, # P operator
+                2*origin[1] - a.y,
+                2*origin[2] - a.z,
+                a.Z,
+                (
+                    a.mag_vec[0] * -1, # T operator
+                    a.mag_vec[1] * -1,
+                    a.mag_vec[2] * -1
+                )
+            ))
+            
+            for at_orig in orig_atoms:
+                at_match = None
+                
+                for at_trans in transformed_atoms:
+                    if (
+                        abs(at_orig.x - at_trans.x) < 2 * eps and
+                        abs(at_orig.y - at_trans.y) < 2 * eps and
+                        abs(at_orig.z - at_trans.z) < 2 * eps and
+                        at_orig.Z == at_trans.Z and
+                        abs(at_orig.mag_vec[0] - at_trans.mag_vec[0]) < 2 * eps and
+                        abs(at_orig.mag_vec[1] - at_trans.mag_vec[1]) < 2 * eps and
+                        abs(at_orig.mag_vec[2] - at_trans.mag_vec[2]) < 2 * eps
+                    ):
+                        at_match = at_trans
+                    
+                if at_match == None:
+                    # print("Wasn't able to find matching atom.")
+                    return False
+                else:
+                    transformed_atoms.remove(at_match)
+                    
+            if transformed_atoms.__len__() == 0:
+                return True
+            else:
+                # print("Some atoms are left over.")
+                return False
 
         for group_key in atom_groups.keys():
             group = atom_groups[group_key]
@@ -337,8 +379,9 @@ class StructureFile:
                             (at1.y + at2.y)/2,
                             (at1.z + at2.z)/2
                         )
-
                         
+                        if PT_check(possible_center, self.atoms):
+                            isPT = True
+                            centers.add(possible_center)
 
-
-        return (isPT, center)
+        return (isPT, list(centers))
