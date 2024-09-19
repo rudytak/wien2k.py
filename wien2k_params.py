@@ -2,6 +2,7 @@ from wien2_helper import *
 
 import os, time
 
+
 class init_lapw_Parameters:
     CALC_METHOD_DICT = {
         "GGA-PBE": 13,
@@ -194,10 +195,10 @@ class init_lapw_Parameters:
                     # set to default
                     self.text_params[k] = str(init_lapw_Parameters.DEFAULTS[k])
 
-    def execute(self, MF, do_restart = False):
+    def execute(self, MF, do_restart=False):
         MF.cmd.type(f"init_lapw -m", 1)
 
-        if(do_restart):
+        if do_restart:
             MF.cmd.type("r", 0.5)
 
         MF.cmd.type(self.text_params["reduction_percentage"], 0.5)
@@ -220,7 +221,9 @@ class init_lapw_Parameters:
         MF.cmd.type("^X", 1, do_ENTER=False)
         MF.cmd.type("c", 1)
 
-        if "STOP: YOU MUST MOVE THE ORIGIN OF THE UNIT CELL" in "\n".join(MF.cmd.read_output(10)):
+        if "STOP: YOU MUST MOVE THE ORIGIN OF THE UNIT CELL" in "\n".join(
+            MF.cmd.read_output(10)
+        ):
             # TODO: moving around cell origin if necessary
             pass
 
@@ -488,14 +491,14 @@ class UJ_Parameters:
                 "\n".join(
                     lmap(
                         parsed_atoms,
-                        lambda at:  f'{at["index"]} {len(at["orbitals"])} {" ".join(at["orbitals"])}',
+                        lambda at: f'{at["index"]} {len(at["orbitals"])} {" ".join(at["orbitals"])}',
                     )
                 ),
                 f"  {nsic}",
                 "\n".join(
                     lmap(
                         parsed_atoms,
-                        lambda at:  f"{self.U * Constants.eV_to_Ry} {self.J * Constants.eV_to_Ry}             U J (Ry)",
+                        lambda at: f"{self.U * Constants.eV_to_Ry} {self.J * Constants.eV_to_Ry}             U J (Ry)",
                     )
                 ),
             ]
@@ -535,3 +538,137 @@ class UJ_Parameters:
 
         os.remove(inorb_path)
         os.remove(indmc_path)
+
+
+class input_TETRA:
+    @staticmethod
+    def DOS_case(atom_id=0, orb="s", description=""):
+        # assumes ISPLIT=8
+        possible_orbitals = [
+            # tot,0,1,PX,PY,PZ,2,DZ2,DX2Y2,DXY,DXZ,DYZ,3
+            "s",
+            "p",
+            "p_x",
+            "p_y",
+            "p_z",
+            "d",
+            "d_z2",
+            "d_x2y2",
+            "d_xy",
+            "d_xz",
+            "d_yz",
+            "f",
+        ]
+
+        if type(atom_id) == type(""):
+            if "tot" in atom_id.lower():
+                # total DOS
+                atom_id = 0
+
+            # elif "inter" in atom_id.lower():
+            #     # interstitial DOS
+            #     # this will have more postprocessing done afterwards
+            #     atom_id = -1
+
+        if type(orb) == type(""):
+            if "all" in orb.lower() or "tot" in orb.lower():
+                # all orbitals
+                orb = 1
+            elif orb in possible_orbitals:
+                orb = 2 + possible_orbitals.index(orb)
+
+        # atutomatic descriptions
+        if description == "" and atom_id == 0:
+            description = f"TOTAL_DOS__{possible_orbitals[orb-1] if orb > 1 else 'all'}"
+
+        # if description == "" and atom_id == -1:
+        #     description = f"INTERSTITIAL_DOS__{possible_orbitals[orb-1] if orb > 1 else 'all'}"
+
+        return {"atom_id": atom_id, "orb": orb, "desc": description}
+
+    def __init__(
+        self,
+        E_min_eV,
+        E_max_eV,
+        DOS_cases: None,
+        E_delta_eV=0.0272,
+        E_gauss_broadening_eV=0.0408,
+        broadening_method="N",  # N(one) or G(aussian) or L(orentzian) or B(oth)
+        broadening_params_eV=[
+            0,
+            0,
+        ],  # in eV, 1 parameter required for G and L, 2 parameters required for B
+    ):
+        # pre-processing/parsing
+        if DOS_cases == None or len(DOS_cases) == 0:
+            # default to the total DOS of all orbitals
+            DOS_cases = [input_TETRA.DOS_case()]
+
+        if broadening_method.lower() not in ["n", "g", "l", "b"]:
+            broadening_method = "N"
+        broadening_method = broadening_method.upper()
+
+        if type(broadening_params_eV) == type(float()):
+            broadening_params_eV = [broadening_params_eV]
+        if type(broadening_params_eV) != type([]):
+            broadening_params_eV = [0, 0]
+        if broadening_method == "N":
+            broadening_params_eV = [0, 0]
+        if (broadening_method == "G" or broadening_method == "L") and len(
+            broadening_params_eV
+        ) != 1:
+            broadening_params_eV = (broadening_params_eV + [0, 0])[0:1]
+        if broadening_method == "B" and len(broadening_params_eV) != 2:
+            broadening_params_eV = (broadening_params_eV + [0, 0])[0:2]
+
+        # saving
+        self.fermi_E_eV = 0
+        self.fermi_E_Ry = 0
+        self.E_min_eV = float(E_min_eV)
+        self.E_min_Ry = float(E_min_eV) * Constants.eV_to_Ry
+        self.E_max_eV = float(E_max_eV)
+        self.E_max_Ry = float(E_max_eV) * Constants.eV_to_Ry
+        self.DOS_cases = DOS_cases
+        self.E_delta_eV = float(E_delta_eV)
+        self.E_delta_Ry = float(E_delta_eV) * Constants.eV_to_Ry
+        self.E_gauss_broadening_eV = float(E_gauss_broadening_eV)
+        self.E_gauss_broadening_Ry = float(E_gauss_broadening_eV) * Constants.eV_to_Ry
+        self.broadening_method = broadening_method
+        self.broadening_params_eV = lmap(broadening_params_eV, float)
+        self.broadening_params_Ry = lmap(
+            broadening_params_eV, lambda x: x * Constants.eV_to_Ry
+        )
+
+        self.__generateFile()
+
+    def __generateFile(self):
+        # generating text
+        self.int_text = "\n".join(
+            [
+                "wien2k.py generated .int input file",
+                f"{(self.E_min_Ry + self.fermi_E_Ry):.5f} {self.E_delta_Ry:.3f} {(self.E_max_Ry + self.fermi_E_Ry):.5f} {self.E_gauss_broadening_Ry:.3f} 	# EMIN, DE, EMAX for DOS, GAUSS-Broad",
+                f"  {len(self.DOS_cases)}   {self.broadening_method}   {self.broadening_params_Ry[0]:.5f}   {'' if self.broadening_method != 'B' else self.broadening_params_Ry[1]} # NUMBER OF DOS-CASES, G/L/B broadening",
+                "\n".join(
+                    lmap(
+                        self.DOS_cases,
+                        lambda at: f"     {at['atom_id'] if at['atom_id'] != -1 else len(self.DOS_cases) + 1} {at['orb']} {at['desc']}",
+                    )
+                ),
+            ]
+        )
+
+    def fermiShift(self, fermi_E_eV):
+        self.fermi_E_eV = float(fermi_E_eV)
+        self.fermi_E_Ry = float(fermi_E_eV) * Constants.eV_to_Ry
+        self.__generateFile()
+
+    def execute(self, MF, material_name):
+        int_path = f"{material_name}{rng_string(16)}.int"
+        with open(int_path, "w") as f:
+            f.write(self.int_text)
+
+        MF.scp.upload_file(int_path, f"{material_name}.int")
+
+        time.sleep(1)
+
+        os.remove(int_path)

@@ -15,7 +15,7 @@ class StructureAtom:
         y,
         z,
         Z,
-        mag_vec = 1
+        mag_vec = 0
     ):
         self.x = x
         self.y = y
@@ -175,6 +175,7 @@ class StructureFile:
         y=None,
         z=None,
         atomic_number=None,
+        mag_vec = None
     ):
         if index >= len(self.atoms) or index < 0:
             self.add_tweak_message(f"Atom {index}: FAILED : INVALID INDEX")
@@ -184,37 +185,46 @@ class StructureFile:
 
         if x != None:
             self.add_tweak_message(
-                f"Atom {index}: x : {self.atoms[index]['x']} -> {sorted([0.0, x, 1.0])[1]}"
+                f"Atom {index}: x : {self.atoms[index].x} -> {sorted([0.0, x, 1.0])[1]}"
             )
-            self.atoms[index]["x"] = sorted([0.0, x, 1.0])[
+            self.atoms[index].x = sorted([0.0, x, 1.0])[
                 1
             ]  # clamp between 0-1 so that the atom is kep inside the cell
         if y != None:
             self.add_tweak_message(
-                f"Atom {index}: y : {self.atoms[index]['y']} -> {sorted([0.0, y, 1.0])[1]}"
+                f"Atom {index}: y : {self.atoms[index].y} -> {sorted([0.0, y, 1.0])[1]}"
             )
-            self.atoms[index]["y"] = sorted([0.0, y, 1.0])[
+            self.atoms[index].y = sorted([0.0, y, 1.0])[
                 1
             ]  # clamp between 0-1 so that the atom is kep inside the cell
         if z != None:
             self.add_tweak_message(
-                f"Atom {index}: z : {self.atoms[index]['z']} -> {sorted([0.0, z, 1.0])[1]}"
+                f"Atom {index}: z : {self.atoms[index].z} -> {sorted([0.0, z, 1.0])[1]}"
             )
-            self.atoms[index]["z"] = sorted([0.0, z, 1.0])[
+            self.atoms[index].z = sorted([0.0, z, 1.0])[
                 1
             ]  # clamp between 0-1 so that the atom is kep inside the cell
         if atomic_number != None:
             nsymb = mendeleev.element(atomic_number).symbol
 
             self.add_tweak_message(
-                f"Atom {index}: Z : {self.atoms[index]['atomic_number']} -> {atomic_number}"
+                f"Atom {index}: Z : {self.atoms[index].atomic_number} -> {atomic_number}"
             )
             self.add_tweak_message(
-                f"Atom {index}: Symbol : {self.atoms[index]['symbol']} -> {nsymb}"
+                f"Atom {index}: Symbol : {self.atoms[index].symbol} -> {nsymb}"
             )
 
-            self.atoms[index]["atomic_number"] = atomic_number
-            self.atoms[index]["symbol"] = nsymb
+            self.atoms[index].Z = atomic_number
+        if mag_vec != None:
+            if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
+                new_mag_vec = (mag_vec, 0, 0)
+            elif type(mag_vec) == type((1,0,0)) or type(mag_vec) == type([1,0,0]):
+                new_mag_vec = (mag_vec[0], mag_vec[1], mag_vec[2])
+
+            self.add_tweak_message(
+                f"Atom {index}: mag_vec : {self.atoms[index].mag_vec} -> {new_mag_vec}"
+            )
+            self.atoms[index].mag_vec = new_mag_vec
         else:
             # nothing changed
             pass
@@ -289,7 +299,13 @@ class StructureFile:
             print(self.get_logs(do_print=False))
         return "\n".join(self.tweak_logs)
 
-    # --------------- PT symmetry ---------------
+    # --------------- P,T,PT symmetry ---------------
+
+    def determine_T_symmetry(self, eps = 1e-4):
+        pass
+
+    def determine_P_symmetry(self, eps = 1e-4):
+        pass
 
     def determine_PT_symmetry(self, eps = 1e-4):
         isPT = False
@@ -326,13 +342,13 @@ class StructureFile:
         #
         print(lmap(atom_groups.keys(), lambda k: (k, atom_groups[k].__len__())))
 
-        # function to check if the atoms after a P_xyz around a origin and T transformations are the same:
+        # function to check if the atoms after a P_xyz around some origin and T transformations are the same:
         def PT_check(origin, _atoms):
             orig_atoms = _atoms
             transformed_atoms = lmap(_atoms, lambda a: StructureAtom(
-                2*origin[0] - a.x, # P operator
-                2*origin[1] - a.y,
-                2*origin[2] - a.z,
+                (2*origin[0] - a.x)%(1.0), # P operator
+                (2*origin[1] - a.y)%(1.0),
+                (2*origin[2] - a.z)%(1.0),
                 a.Z,
                 (
                     a.mag_vec[0] * -1, # T operator

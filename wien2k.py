@@ -20,8 +20,17 @@ class MaterialFolder:
             self.structure = StructureFile.load(struct_filepath)
         elif structure != None:
             self.structure = structure
+        elif structure == "":
+            # this is alright for just opening and empty instance for the CMD, SSH and SCP to use commands, but running lapw won't be possible
+            pass
         else:
             raise Exception("No structure was given!")
+
+    @staticmethod
+    def open_empty_instance(credentials_json_path):
+        MF = MaterialFolder(credentials_json_path, "", structure="")
+        MF.open()
+        return MF
 
     def open(self):
         # connect to the server
@@ -68,7 +77,7 @@ class MaterialFolder:
 
     # ---------------- RUNNING SCF INTERNAL ----------------
 
-    def _await_lapw_end(self, timeout=60, min_time=10*60):
+    def _await_lapw_end(self, timeout=60, min_time=10 * 60):
         # set the start time:
         start_time = timeit.default_timer()
         print(
@@ -148,7 +157,7 @@ class MaterialFolder:
         self.cmd.type(f"xyz2struct < {self.material}.poscar")
         while "be exactly" in "\n".join(self.cmd.read_output(2)):
             self.cmd.type("n")
-        
+
         self.cmd.type(f"mv xyz2struct.struct {self.material}.struct")
         # TODO: add visual cehck for any questions
 
@@ -242,7 +251,9 @@ class MaterialFolder:
             "results": {
                 "fermi_energy_eV": fer_Ry * Constants.Ry_to_eV,
                 "energy_tot_eV": ene_Ry * Constants.Ry_to_eV,
-                "energy_per_cell_eV": ene_Ry * Constants.Ry_to_eV / self.structure.get_mutliples_count(),
+                "energy_per_cell_eV": ene_Ry
+                * Constants.Ry_to_eV
+                / self.structure.get_mutliples_count(),
                 "gap_eV": gap_Ry * Constants.Ry_to_eV,
                 "fermi_energy_Ry": fer_Ry,
                 "energy_tot_Ry": ene_Ry,
@@ -278,7 +289,7 @@ class MaterialFolder:
         params: init_lapw_Parameters = None,
         params_so: init_so_lapw_Parameters = None,
         params_orb: UJ_Parameters = None,
-        auto_confirm = False
+        auto_confirm=False,
     ):
         if params == None:
             # ask if they want to put in the parameters manually
@@ -344,31 +355,115 @@ class MaterialFolder:
         """
         pass
 
-    def DOS():
+    @staticmethod
+    def DOS(run_detail_path, in_tetra, save_path, credentials_json_path="./credentials.json"):
         """
         Calculates and collect DOS data of an already converged system.
-        Should be ran while in a directory with a finished run.
         """
-        pass
+
+        MF = MaterialFolder.open_empty_instance(credentials_json_path)
+
+        run_details = {}
+        with open(run_detail_path, "r") as reader:
+            run_details = json.load(reader)
+        time_per_cycle = (
+            run_details["diagnostics"]["runtime"] / run_details["diagnostics"]["cycles"]
+        )
+
+        MF.cmd.cd("")
+        MF.cmd.cd(run_details["absolute_path"])
+        # shift the .int file by the fermi energy and upload the .int file
+        in_tetra.fermiShift(run_details["results"]["fermi_energy_eV"])
+        in_tetra.execute(MF, run_details["inputs"]["material_name"])
+
+        is_sp = run_details["inputs"]["init_lapw"]["spin_polarized"] == "y"
+        is_so = run_details["inputs"]["init_so_lapw"] != {}
+        is_orb = (
+            run_details["inputs"]["UJ"]["U_eV"] != 0
+            or run_details["inputs"]["UJ"]["J_eV"] != 0
+        )
+
+        # lapw1
+        MF.cmd.type(
+            f"x lapw1 {'-up' if is_sp else ''} {'-so' if is_so else ''} {'-orb' if is_orb else ''} -qtl",
+            wait_after=time_per_cycle / 4,
+        )
+        if is_sp:
+            MF.cmd.type(
+                f"x lapw1 -dn {'-so' if is_so else ''} {'-orb' if is_orb else ''} -qtl",
+                wait_after=time_per_cycle / 4,
+            )
+
+        # lapwso
+        if is_so:
+            MF.cmd.type(
+                f"x lapw1 {'-up' if is_sp else ''} {'-orb' if is_orb else ''} -qtl",
+                wait_after=time_per_cycle / 4,
+            )
+            if is_sp:
+                MF.cmd.type(
+                    f"x lapw1 -dn {'-orb' if is_orb else ''} -qtl",
+                    wait_after=time_per_cycle / 4,
+                )
+            
+        # lapw2
+        MF.cmd.type(
+            f"x lapw2 {'-up' if is_sp else ''} {'-so' if is_so else ''} -qtl",
+            wait_after=time_per_cycle / 10,
+        )
+        if is_sp:
+            MF.cmd.type(
+                f"x lapw2 -dn {'-so' if is_so else ''} -qtl",
+                wait_after=time_per_cycle / 10,
+            )
+
+        # run tetra
+        MF.cmd.type(
+            f"x tetra {'-up' if is_sp else ''} {'-so' if is_so else ''}",
+            wait_after=time_per_cycle / 10,
+        )
+
+        # wait for all things to finish
+        if "LEGAL END TETRA" not in MF.cmd.read_output(5):
+            time.sleep(1)
+            print("waiting for tetra to end")
+
+        if is_sp:
+            MF.cmd.type("clear")
+            MF.cmd.type(
+                f"x tetra -dn {'-so' if is_so else ''}",
+                wait_after=time_per_cycle / 10,
+            )
+
+            if "LEGAL END TETRA" not in MF.cmd.read_output(5):
+                time.sleep(1)
+                print("waiting for tetra -dn to end")
+
+
+        if is_sp:
+            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1evup", save_path + ".dos1evup")
+            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1evdn", save_path + ".dos1evdn")
+        else:
+            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1ev", save_path + ".dos1ev")
+
+        MF.close()
 
     # ---------------- OPTIMISATIONS / AUTOMATIZATIONS ----------------
 
-if __name__ == "__main__":
-    mn2as = StructureFile(
-        "Mn2As",
-        [
-            StructureAtom(0.0, 0.0, 0.0, 25, 1.0),
-            StructureAtom(0.5, 0.5, 0.5, 25, -1.0),
-            StructureAtom(0.25, 0.25, 0.25, 26, 0),
-            StructureAtom(0.75, 0.75, 0.75, 26, 0),
-        ],
-        3.615015000000000,
-        3.615015000000000,
-        6.334917000000000,
-    )
-    (isPT, centers) = mn2as.determine_PT_symmetry()
-    print(isPT, centers)
 
-    # mf = MaterialFolder("./credentials.json", "Mn2As", structure = cr2as)
-    # mf.open()
-    # mf.manual_run("F", init_lapw_Parameters(kpoints=1000, spin_polarized=True, lstart_flag="-ask", x_ask_flags_pattern=["u"]))
+if __name__ == "__main__":
+    MaterialFolder.DOS(
+        "./execs/mn2as_mag_permuts_results_U=0/_run_N57C9EHQNA2D88XJ_details.json",
+        input_TETRA(
+            -6.0,
+            4.0,
+            [
+                input_TETRA.DOS_case("total", "all"),
+                input_TETRA.DOS_case(1, "d"),
+                input_TETRA.DOS_case(4, "d"),
+                input_TETRA.DOS_case(8, "p"),
+                input_TETRA.DOS_case(8, "d"),
+            ],
+        ),
+        "./execs/mn2as_DOS/mn2as_DOS_U=0_F"
+    )
