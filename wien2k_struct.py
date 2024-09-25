@@ -155,8 +155,6 @@ class StructureFile:
             self.add_tweak_message(f"Cell dimension: gamma : {self.gamma} -> {gamma}")
             self.gamma = gamma
 
-        self.update_symmetry()
-
     def tweak_cell_multiples(self, a=1, b=1, c=1):
         old = self.cell_multiples
         self.cell_multiples = {
@@ -174,7 +172,7 @@ class StructureFile:
         x=None,
         y=None,
         z=None,
-        atomic_number=None,
+        Z=None,
         mag_vec = None
     ):
         if index >= len(self.atoms) or index < 0:
@@ -204,17 +202,12 @@ class StructureFile:
             self.atoms[index].z = sorted([0.0, z, 1.0])[
                 1
             ]  # clamp between 0-1 so that the atom is kep inside the cell
-        if atomic_number != None:
-            nsymb = mendeleev.element(atomic_number).symbol
-
+        if Z != None:
             self.add_tweak_message(
-                f"Atom {index}: Z : {self.atoms[index].atomic_number} -> {atomic_number}"
-            )
-            self.add_tweak_message(
-                f"Atom {index}: Symbol : {self.atoms[index].symbol} -> {nsymb}"
+                f"Atom {index}: Z : {self.atoms[index].Z} -> {Z}"
             )
 
-            self.atoms[index].Z = atomic_number
+            self.atoms[index].Z = Z
         if mag_vec != None:
             if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
                 new_mag_vec = (mag_vec, 0, 0)

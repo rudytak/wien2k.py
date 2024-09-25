@@ -1,0 +1,49 @@
+{
+  "name": "CrSb_test_notSO",
+  "run_uid": "run_L7RMWNW6XRWRSJ3P",
+  "completion_date": "19/09/2024 22:01:03",
+  "absolute_path": "CrSb/sp1_so0_orb0/CrSb_test_notSO/CrSb",
+  "inputs": {
+    "material_name": "CrSb",
+    "struct": {
+      "plaintext": "MnTe\n1.0 Ang\n3.3500854288537627 1.1844335301419686 2.0515003855854208\n0.0000000000000000 3.5533020788886289 2.0515002647247558\n0.0000000000000000 0.0000000000000000 5.4630000000000001\nCr Sb \n1 1 \nDirect\n0.0000000000000000 0.0000000000000000 0.0000000000000000 Cr\n0.5000000000000000 0.5000000000000000 0.5000000000000000 Sb\n",
+      "tweaks_log": "Cell dimension: a : 4.158032310447199 -> 4.103\nCell dimension: b : 4.158032553429481 -> 4.103\nCell dimension: c : 4.15803193 -> 5.463\nAtom 0: Z : 25 -> 24\nAtom 1: Z : 52 -> 51"
+    },
+    "init_lapw": {
+      "reduction_percentage": "0",
+      "scheme": "N",
+      "accept_radii": "a",
+      "nearest_neighbor": "2",
+      "lstart_flag": "-ask",
+      "x_ask_flags_pattern": ["u", "d"],
+      "calculation_method": "5",
+      "separation_energy_eV": "-6.0",
+      "kpoints": "1000",
+      "x_kdensity": "0.1",
+      "kshift": "0",
+      "spin_polarized": "y",
+      "x_antiferromagnetic": "n"
+    },
+    "init_so_lapw": {},
+    "UJ": { "U_eV": 0, "J_eV": 0, "atoms": [] }
+  },
+  "diagnostics": {
+    "cycles": 15,
+    "runtime": 663.23,
+    "status": "success",
+    "end_stack": "LAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 14 ETEST: .0003324'700000000 CTEST: .0293327 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 15 ETEST: .0001040150000000 CTEST: .0062873 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 1111\n> stop\nsedlacek@serv-031:~/CrSb/sp1_so0_orb0/CrSb_test_notSO/CrSb$ cd .\nsedlacek@serv-031:~/CrSb/sp1_so0_orb0/CrSb_test_notSO/CrSb$ \u201cC\nsedlacek@serv-031:~/CrSb/sp1_so0_orb0/CrSb_test_notSO/CrSb$ cd .\nsedlacek@serv\u2014031:~/CrSb/sp1_so0_orb0/CrSb_test_notSO/CrSb$"
+  },
+  "results": {
+    "fermi_energy_eV": 2.68707756697082,
+    "energy_tot_eV": -204818.60939422454,
+    "energy_per_cell_eV": -204818.60939422454,
+    "gap_eV": 0.0,
+    "fermi_energy_Ry": 0.1974964009,
+    "energy_tot_Ry": -15053.8781202,
+    "energy_per_cell_Ry": -15053.8781202,
+    "gap_Ry": 0.0,
+    "MM_tot": 3.91314,
+    "MM_intersticial": 0.25673,
+    "MM_atoms": []
+  }
+}

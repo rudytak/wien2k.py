@@ -419,6 +419,11 @@ class init_so_lapw_Parameters:
             if self.text_params["x_use_SO_structure"] == "y":
                 MF.cmd.type(self.text_params["x__kpoints"], 0.5)
                 MF.cmd.type("^X", 1, do_ENTER=False)
+                MF.cmd.type("y", 0.5)
+
+                # rerun kgen once
+                MF.cmd.type(self.text_params["x__kpoints"], 0.5)
+                MF.cmd.type("^X", 1, do_ENTER=False)
                 MF.cmd.type("n", 0.5)
 
 

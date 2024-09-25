@@ -349,14 +349,17 @@ class MaterialFolder:
 
     # ---------------- PROCESSING ----------------
 
-    def band_structure():
+    @staticmethod
+    def band_structure(run_detail_path):
         """
         Should be ran while in a directory with a finished run.
         """
         pass
 
     @staticmethod
-    def DOS(run_detail_path, in_tetra, save_path, credentials_json_path="./credentials.json"):
+    def DOS(
+        run_detail_path, in_tetra, save_path, credentials_json_path="./credentials.json"
+    ):
         """
         Calculates and collect DOS data of an already converged system.
         """
@@ -405,7 +408,7 @@ class MaterialFolder:
                     f"x lapw1 -dn {'-orb' if is_orb else ''} -qtl",
                     wait_after=time_per_cycle / 4,
                 )
-            
+
         # lapw2
         MF.cmd.type(
             f"x lapw2 {'-up' if is_sp else ''} {'-so' if is_so else ''} -qtl",
@@ -439,12 +442,20 @@ class MaterialFolder:
                 time.sleep(1)
                 print("waiting for tetra -dn to end")
 
-
         if is_sp:
-            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1evup", save_path + ".dos1evup")
-            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1evdn", save_path + ".dos1evdn")
+            MF.scp.download_file(
+                run_details["inputs"]["material_name"] + ".dos1evup",
+                save_path + ".dos1evup",
+            )
+            MF.scp.download_file(
+                run_details["inputs"]["material_name"] + ".dos1evdn",
+                save_path + ".dos1evdn",
+            )
         else:
-            MF.scp.download_file(run_details["inputs"]["material_name"] + ".dos1ev", save_path + ".dos1ev")
+            MF.scp.download_file(
+                run_details["inputs"]["material_name"] + ".dos1ev",
+                save_path + ".dos1ev",
+            )
 
         MF.close()
 
@@ -452,18 +463,39 @@ class MaterialFolder:
 
 
 if __name__ == "__main__":
-    MaterialFolder.DOS(
-        "./execs/mn2as_mag_permuts_results_U=0/_run_N57C9EHQNA2D88XJ_details.json",
-        input_TETRA(
-            -6.0,
-            4.0,
-            [
-                input_TETRA.DOS_case("total", "all"),
-                input_TETRA.DOS_case(1, "d"),
-                input_TETRA.DOS_case(4, "d"),
-                input_TETRA.DOS_case(8, "p"),
-                input_TETRA.DOS_case(8, "d"),
-            ],
+    crsb = StructureFile.load_materials_project(
+        "https://legacy.materialsproject.org/materials/mp-1406/",  # load in mnte
+        "credentials.json",
+    )
+
+    crsb.tweak_dimensions(4.103, 4.103, 5.463)
+    crsb.tweak_atom(0, Z=24)
+    crsb.tweak_atom(1, Z=51)
+    print(crsb.atoms)
+
+    mf = MaterialFolder("credentials.json", "CrSb", structure=crsb)
+    mf.open()
+    mf.manual_run(
+        "CrSb_test_notSO",
+        init_lapw_Parameters(
+            kpoints=1000,
+            spin_polarized=True,
+            lstart_flag="ask",
+            x_ask_flags_pattern=["u", "d"],
+            calculation_method="LDA",
         ),
-        "./execs/mn2as_DOS/mn2as_DOS_U=0_F"
+        auto_confirm=True,
+    )
+
+    mf.manual_run(
+        "CrSb_test_SO",
+        init_lapw_Parameters(
+            kpoints=1000,
+            spin_polarized=True,
+            lstart_flag="ask",
+            x_ask_flags_pattern=["u", "d"],
+            calculation_method="LDA",
+        ),
+        params_so=init_so_lapw_Parameters(0, 0, 1, EMAX=10.0),
+        auto_confirm=True,
     )
