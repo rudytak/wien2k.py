@@ -1,0 +1,60 @@
+{
+  "name": "CrSb_test_SO",
+  "run_uid": "run_NEOQWLEYB520PI2H",
+  "completion_date": "26/09/2024 12:04:43",
+  "absolute_path": "CrSb/sp1_so1_orb0/CrSb_test_SO/CrSb",
+  "inputs": {
+    "material_name": "CrSb",
+    "struct": {
+      "plaintext": "MnTe\n1.0 Ang\n3.3500854288537627 1.1844335301419686 2.0515003855854208\n0.0000000000000000 3.5533020788886289 2.0515002647247558\n0.0000000000000000 0.0000000000000000 5.4630000000000001\nCr Sb \n1 1 \nDirect\n0.0000000000000000 0.0000000000000000 0.0000000000000000 Cr\n0.5000000000000000 0.5000000000000000 0.5000000000000000 Sb\n",
+      "tweaks_log": "Cell dimension: a : 4.158032310447199 -> 4.103\nCell dimension: b : 4.158032553429481 -> 4.103\nCell dimension: c : 4.15803193 -> 5.463\nAtom 0: Z : 25 -> 24\nAtom 1: Z : 52 -> 51"
+    },
+    "init_lapw": {
+      "reduction_percentage": "0",
+      "scheme": "N",
+      "accept_radii": "a",
+      "nearest_neighbor": "2",
+      "lstart_flag": "-ask",
+      "x_ask_flags_pattern": ["u", "d"],
+      "calculation_method": "5",
+      "separation_energy_eV": "-6.0",
+      "kpoints": "1000",
+      "x_kdensity": "0.1",
+      "kshift": "0",
+      "spin_polarized": "y",
+      "x_antiferromagnetic": "n"
+    },
+    "init_so_lapw": {
+      "h": "0",
+      "k": "0",
+      "l": "1",
+      "ignored_atoms": "",
+      "EMAX": "10.0",
+      "RLOs": "n",
+      "x_chosen_RLOs_pattern": [],
+      "spin_polarized": "y",
+      "x_use_SO_structure": "y",
+      "x__kpoints": "1000"
+    },
+    "UJ": { "U_eV": 0, "J_eV": 0, "atoms": [] }
+  },
+  "diagnostics": {
+    "cycles": 16,
+    "runtime": 1032.72,
+    "status": "success",
+    "end_stack": "LAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 0111\nin cycle 15 ETEST: .0009015050000000 CTEST: .0169330 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPWSO END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 16 ETEST: .0002763950000000 CTEST: .0062769 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPWSO END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 1111\n> stop\nsedlacek@serv-031:~/CrSb/sp1_sol_orb0/CrSb_test_SO/CrSb$ cd .\nsedlacek@serv-031:~/CrSb/sp1_sol_orb0/CrSb_test_SO/CrSb$ \u201cC\nsedlacek@serv-031:~/CrSb/sp1_sol_orb0/CrSb_test_SO/CrSb$ cd .\nsedlacek@serv-031:~/CrSb/sp1_sol_orb0/CrSb_test_SO/CrSb$"
+  },
+  "results": {
+    "fermi_energy_eV": 2.6965613412930667,
+    "energy_tot_eV": -204818.71275362832,
+    "energy_per_cell_eV": -204818.71275362832,
+    "gap_eV": 0.0,
+    "fermi_energy_Ry": 0.1981934449,
+    "energy_tot_Ry": -15053.88571697,
+    "energy_per_cell_Ry": -15053.88571697,
+    "gap_Ry": 0.0,
+    "MM_tot": 3.95505,
+    "MM_intersticial": 0.27589,
+    "MM_atoms": []
+  }
+}

@@ -266,9 +266,7 @@ class MaterialFolder:
                     re.findall(r":MMINT.+([- ]\d*\.\d*)", content)[-1]
                 ),
                 "MM_atoms": lmap(
-                    re.findall(r":MMI\d{3}\d*\d\d*([- ]\d*\.\d*)", content)[
-                        -self.structure.non_eq_count :
-                    ],
+                    re.findall(r":MMI\d{3}\d*\d\d*([- ]\d*\.\d*)", content),
                     float,
                 ),
             },
@@ -464,31 +462,26 @@ class MaterialFolder:
 
 if __name__ == "__main__":
     crsb = StructureFile.load_materials_project(
-        "https://legacy.materialsproject.org/materials/mp-1406/",  # load in mnte
+        "https://next-gen.materialsproject.org/materials/mp-20552?formula=Cr2As",  # load in mnte
         "credentials.json",
     )
 
-    crsb.tweak_dimensions(4.103, 4.103, 5.463)
-    crsb.tweak_atom(0, Z=24)
-    crsb.tweak_atom(1, Z=51)
-    print(crsb.atoms)
-
-    mf = MaterialFolder("credentials.json", "CrSb", structure=crsb)
+    mf = MaterialFolder("credentials.json", "Cr2As", structure=crsb)
     mf.open()
-    mf.manual_run(
-        "CrSb_test_notSO",
-        init_lapw_Parameters(
-            kpoints=1000,
-            spin_polarized=True,
-            lstart_flag="ask",
-            x_ask_flags_pattern=["u", "d"],
-            calculation_method="LDA",
-        ),
-        auto_confirm=True,
-    )
+    # mf.manual_run(
+    #     "CrSb_test_notSO",
+    #     init_lapw_Parameters(
+    #         kpoints=1000,
+    #         spin_polarized=True,
+    #         lstart_flag="ask",
+    #         x_ask_flags_pattern=["u", "d"],
+    #         calculation_method="LDA",
+    #     ),
+    #     auto_confirm=True,
+    # )
 
     mf.manual_run(
-        "CrSb_test_SO",
+        "Cr2As_AF",
         init_lapw_Parameters(
             kpoints=1000,
             spin_polarized=True,
