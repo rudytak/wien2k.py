@@ -1,0 +1,60 @@
+{
+    "name": "Fi_single_cell",
+    "run_uid": "run_OI4ZNE12CC1E6AQH",
+    "completion_date": "17/10/2024 20:24:00",
+    "absolute_path": "Cr2As/sp1_so0_orb0/Fi_single_cell/Cr2As",
+    "inputs": {
+        "material_name": "Cr2As",
+        "struct": {
+            "plaintext": "Cr2As\n1.0 Ang\n3.5607489999999999 0.0000000000000002 0.0000000000000002\n0.0000000000000000 3.5607489999999999 0.0000000000000002\n0.0000000000000000 0.0000000000000000 6.3256199999999998\nCr As \n4 2 \nDirect\n0.0000000000000000 0.5000000000000000 0.6665920000000000 Cr\n0.5000000000000000 0.0000000000000000 0.3334080000000000 Cr\n0.5000000000000000 0.5000000000000000 0.0000000000000000 Cr\n0.0000000000000000 0.0000000000000000 0.0000000000000000 Cr\n0.0000000000000000 0.5000000000000000 0.2806740000000000 As\n0.5000000000000000 0.0000000000000000 0.7193260000000000 As\n",
+            "tweaks_log": "Cell multiples: (1,1,1) -> (1,1,1)"
+        },
+        "init_lapw": {
+            "reduction_percentage": "0",
+            "scheme": "N",
+            "accept_radii": "a",
+            "nearest_neighbor": "2",
+            "lstart_flag": "-ask",
+            "x_ask_flags_pattern": [
+                "d",
+                "d",
+                "u",
+                "u",
+                "n",
+                "n"
+            ],
+            "calculation_method": "13",
+            "separation_energy_eV": "-6.0",
+            "kpoints": "1000",
+            "x_kdensity": "0.1",
+            "kshift": "0",
+            "spin_polarized": "y",
+            "x_antiferromagnetic": "n"
+        },
+        "init_so_lapw": {},
+        "UJ": {
+            "U_eV": 0,
+            "J_eV": 0,
+            "atoms": []
+        }
+    },
+    "diagnostics": {
+        "cycles": 17,
+        "runtime": 723.73,
+        "status": "success",
+        "end_stack": "LAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 16 ETEST: .0002280700000000 CTEST: .0272941 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv\u00ae 111\nin cycle 17 ETEST: .0003215750000000 CTEST: .0167803 STRTEST 0\nLAPWO END\nLAPW1 END\nLAPW1 END\nLAPW2 END\nLAPW2 END\nCORE END\nCORE END\nMIXER END\nec cc fc and str_conv 1111\n> stop\nsedlacek@serv\u2014031:~/Cr2As/sp1_so0_orb0/Fi_single_cell/Cr2As$ cd .\nsedlacek@serv\u2014031:~/Cr2As/sp1_so0_orb0/Fi_single_cell/Cr2As$ \u00b0C\nsedlacek@serv\u2014031:~/Cr2As/sp1_so0_orb0/Fi_single_cell/Cr2As$ cd .\nsedlacek@serv\u2014031:~/Cr2As/sp1_so0_orb0/Fi_single_cell/Cr2As$"
+    },
+    "results": {
+        "fermi_energy_eV": 10.016681715154961,
+        "energy_tot_eV": -237439.5806237978,
+        "energy_per_cell_eV": -237439.5806237978,
+        "gap_eV": 0.0,
+        "fermi_energy_Ry": 0.7362119397,
+        "energy_tot_Ry": -17451.47337048,
+        "energy_per_cell_Ry": -17451.47337048,
+        "gap_Ry": 0.0,
+        "MM_tot": -1.31449,
+        "MM_intersticial": -0.03959,
+        "MM_atoms": []
+    }
+}
