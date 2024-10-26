@@ -461,12 +461,12 @@ class MaterialFolder:
 
 
 if __name__ == "__main__":
-    crsb = StructureFile.load_materials_project(
+    struct = StructureFile.load_materials_project(
         "https://next-gen.materialsproject.org/materials/mp-20552?formula=Cr2As",  # load in mnte
         "credentials.json",
     )
 
-    mf = MaterialFolder("credentials.json", "Cr2As", structure=crsb)
+    mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
     mf.open()
     # mf.manual_run(
     #     "CrSb_test_notSO",
@@ -480,15 +480,15 @@ if __name__ == "__main__":
     #     auto_confirm=True,
     # )
 
-    mf.manual_run(
-        "Cr2As_AF",
-        init_lapw_Parameters(
-            kpoints=1000,
-            spin_polarized=True,
-            lstart_flag="ask",
-            x_ask_flags_pattern=["u", "d"],
-            calculation_method="LDA",
-        ),
-        params_so=init_so_lapw_Parameters(0, 0, 1, EMAX=10.0),
-        auto_confirm=True,
-    )
+    # mf.manual_run(
+    #     "Cr2As_AF",
+    #     init_lapw_Parameters(
+    #         kpoints=1000,
+    #         spin_polarized=True,
+    #         lstart_flag="ask",
+    #         x_ask_flags_pattern=["u", "d"],
+    #         calculation_method="LDA",
+    #     ),
+    #     params_so=init_so_lapw_Parameters(0, 0, 1, EMAX=10.0),
+    #     auto_confirm=True,
+    # )
