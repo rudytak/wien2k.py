@@ -5,43 +5,43 @@ import numpy as np
 import re, json
 
 from mp_api.client import MPRester
-from pyxtal.lattice import para2matrix
+from pyxtal.lattice import para2matrix, matrix2para
+import copy, math
+
+from time import perf_counter
 
 
 class StructureAtom:
-    def __init__(
-        self,
-        x,
-        y,
-        z,
-        Z,
-        mag_vec = 0
-    ):
+    def __init__(self, x, y, z, Z, mag_vec=0):
         self.x = x
         self.y = y
         self.z = z
 
         self.Z = Z
+        self.symb = None
+        # self.get_symbol()
 
         if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
             self.mag_vec = (mag_vec, 0, 0)
-        elif type(mag_vec) == type((1,0,0)) or type(mag_vec) == type([1,0,0]):
+        elif type(mag_vec) == type((1, 0, 0)) or type(mag_vec) == type([1, 0, 0]):
             self.mag_vec = (mag_vec[0], mag_vec[1], mag_vec[2])
 
     def get_symbol(self):
-        return mendeleev.element(int(self.Z)).symbol
-    
+        if self.symb == None:
+            self.symb = mendeleev.element(int(self.Z)).symbol
+        return self.symb
+
     def get_type_id(self):
         return f"<wien2k_struct.StructureAtom {self.Z} {self.mag_vec[0]} {self.mag_vec[1]} {self.mag_vec[2]}>"
-    
+
     def copy(self):
         return StructureAtom(self.x, self.y, self.z, self.Z, self.mag_vec)
 
     def __repr__(self):
-        return f"<wien2k_struct.StructureAtom {self.x} {self.y} {self.z} {self.Z}>"
+        return f"<wien2k_struct.StructureAtom {self.x} {self.y} {self.z} {self.get_symbol()}>"
 
     def __str__(self):
-        return f"<wien2k_struct.StructureAtom {self.x} {self.y} {self.z} {self.Z}>"
+        return f"<wien2k_struct.StructureAtom {self.x} {self.y} {self.z} {self.get_symbol()}>"
 
 
 class StructureFile:
@@ -89,15 +89,75 @@ class StructureFile:
 
         # atomic info
         self.atoms = atoms
+        self.atoms.sort(key=lambda a: a.Z)
         self.non_eq_count = 0
 
+    def copy(self):
+        return copy.deepcopy(self)
+
     def get_mutliples_count(self):
-        return self.cell_multiples["a"] * self.cell_multiples["b"] * self.cell_multiples["c"]
+        return (
+            self.cell_multiples["a"]
+            * self.cell_multiples["b"]
+            * self.cell_multiples["c"]
+        )
 
     @staticmethod
     def load_poscar(filepath):
         # TODO:
         pass
+
+    @staticmethod
+    def parse_poscar(poscar_text):
+        # start_time = perf_counter()
+        
+        lines = poscar_text.strip().split("\n")
+
+        title = lines[0]
+        matrix_scale = float(lines[1].strip().split(" ")[0])
+        
+        # set the unit to angstroms by default
+        unit = "Ang"
+        try:
+            unit = lines[1].strip().split(" ")[1]
+        except:
+            # keep the unit as default
+            pass
+        
+        a_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[2].strip())]
+        b_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[3].strip())]
+        c_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[4].strip())]
+
+        (a, b, c, alpha, beta, gamma) = matrix2para([a_vec, b_vec, c_vec])
+        alpha = alpha * 180 / math.pi
+        beta = beta * 180 / math.pi
+        gamma = gamma * 180 / math.pi
+
+        atom_types = lines[5].strip().split(" ")
+        atom_counts = [int(v) for v in lines[6].strip().split(" ")]
+        are_atoms_direct = lines[7].strip().lower() == "direct"
+
+        if not are_atoms_direct:
+            raise NotImplementedError("Non-direct POSCAR files are not supported yet.")
+
+        atoms = []
+        ij = 0
+        for i in range(len(atom_types)):
+            at = atom_types[i]
+            Z = mendeleev.element(at).atomic_number
+
+            for j in range(atom_counts[i]):
+                x, y, z = [float(v) for v in re.split(r'[ \t]+',lines[8 + ij].strip())[0:3]]
+                atoms.append(StructureAtom(x, y, z, Z))
+                ij += 1
+
+        output = StructureFile(title, atoms, a, b, c, alpha, beta, gamma)
+        
+        # end_time = perf_counter()
+        # print(f"Time took to parse POSCAR: {(end_time - start_time):.4f}s")
+    
+        return output 
+    
 
     @staticmethod
     def load_cif(filepath):
@@ -166,15 +226,7 @@ class StructureFile:
             f"Cell multiples: ({old['a']},{old['b']},{old['c']}) -> ({self.cell_multiples['a']},{self.cell_multiples['b']},{self.cell_multiples['c']})"
         )
 
-    def tweak_atom(
-        self,
-        index,
-        x=None,
-        y=None,
-        z=None,
-        Z=None,
-        mag_vec = None
-    ):
+    def tweak_atom(self, index, x=None, y=None, z=None, Z=None, mag_vec=None):
         if index >= len(self.atoms) or index < 0:
             self.add_tweak_message(f"Atom {index}: FAILED : INVALID INDEX")
             raise Exception(
@@ -203,15 +255,13 @@ class StructureFile:
                 1
             ]  # clamp between 0-1 so that the atom is kep inside the cell
         if Z != None:
-            self.add_tweak_message(
-                f"Atom {index}: Z : {self.atoms[index].Z} -> {Z}"
-            )
+            self.add_tweak_message(f"Atom {index}: Z : {self.atoms[index].Z} -> {Z}")
 
             self.atoms[index].Z = Z
         if mag_vec != None:
             if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
                 new_mag_vec = (mag_vec, 0, 0)
-            elif type(mag_vec) == type((1,0,0)) or type(mag_vec) == type([1,0,0]):
+            elif type(mag_vec) == type((1, 0, 0)) or type(mag_vec) == type([1, 0, 0]):
                 new_mag_vec = (mag_vec[0], mag_vec[1], mag_vec[2])
 
             self.add_tweak_message(
@@ -277,7 +327,6 @@ class StructureFile:
             text += f"{counts[atom_number]} "
         text += "\n"
 
-
         text += "Direct\n"
 
         # write out all atom positions
@@ -294,13 +343,13 @@ class StructureFile:
 
     # --------------- P,T,PT symmetry ---------------
 
-    def determine_T_symmetry(self, eps = 1e-4):
+    def determine_T_symmetry(self, eps=1e-4):
         pass
 
-    def determine_P_symmetry(self, eps = 1e-4):
+    def determine_P_symmetry(self, eps=1e-4):
         pass
 
-    def determine_PT_symmetry(self, eps = 1e-4):
+    def determine_PT_symmetry(self, eps=1e-4):
         isPT = False
         centers = set()
 
@@ -313,64 +362,63 @@ class StructureFile:
                 for y_off in [-1, 0, 1]:
                     for z_off in [-1, 0, 1]:
                         if (
-                            a.x + x_off > 0.0 - eps and
-                            a.x + x_off < 1.0 + eps and
-                            a.y + y_off > 0.0 - eps and
-                            a.y + y_off < 1.0 + eps and
-                            a.z + z_off > 0.0 - eps and
-                            a.z + z_off < 1.0 + eps
+                            a.x + x_off > 0.0 - eps
+                            and a.x + x_off < 1.0 + eps
+                            and a.y + y_off > 0.0 - eps
+                            and a.y + y_off < 1.0 + eps
+                            and a.z + z_off > 0.0 - eps
+                            and a.z + z_off < 1.0 + eps
                         ):
                             if a.Z not in atom_groups:
                                 atom_groups[a.Z] = []
-                                
+
                             new_a = StructureAtom(
-                                a.x + x_off,
-                                a.y + y_off,
-                                a.z + z_off,
-                                a.Z,
-                                a.mag_vec
+                                a.x + x_off, a.y + y_off, a.z + z_off, a.Z, a.mag_vec
                             )
                             atom_groups[a.Z].append(new_a)
-                        
+
         #
         print(lmap(atom_groups.keys(), lambda k: (k, atom_groups[k].__len__())))
 
         # function to check if the atoms after a P_xyz around some origin and T transformations are the same:
         def PT_check(origin, _atoms):
             orig_atoms = _atoms
-            transformed_atoms = lmap(_atoms, lambda a: StructureAtom(
-                (2*origin[0] - a.x)%(1.0), # P operator
-                (2*origin[1] - a.y)%(1.0),
-                (2*origin[2] - a.z)%(1.0),
-                a.Z,
-                (
-                    a.mag_vec[0] * -1, # T operator
-                    a.mag_vec[1] * -1,
-                    a.mag_vec[2] * -1
-                )
-            ))
-            
+            transformed_atoms = lmap(
+                _atoms,
+                lambda a: StructureAtom(
+                    (2 * origin[0] - a.x) % (1.0),  # P operator
+                    (2 * origin[1] - a.y) % (1.0),
+                    (2 * origin[2] - a.z) % (1.0),
+                    a.Z,
+                    (
+                        a.mag_vec[0] * -1,  # T operator
+                        a.mag_vec[1] * -1,
+                        a.mag_vec[2] * -1,
+                    ),
+                ),
+            )
+
             for at_orig in orig_atoms:
                 at_match = None
-                
+
                 for at_trans in transformed_atoms:
                     if (
-                        abs(at_orig.x - at_trans.x) < 2 * eps and
-                        abs(at_orig.y - at_trans.y) < 2 * eps and
-                        abs(at_orig.z - at_trans.z) < 2 * eps and
-                        at_orig.Z == at_trans.Z and
-                        abs(at_orig.mag_vec[0] - at_trans.mag_vec[0]) < 2 * eps and
-                        abs(at_orig.mag_vec[1] - at_trans.mag_vec[1]) < 2 * eps and
-                        abs(at_orig.mag_vec[2] - at_trans.mag_vec[2]) < 2 * eps
+                        abs(at_orig.x - at_trans.x) < 2 * eps
+                        and abs(at_orig.y - at_trans.y) < 2 * eps
+                        and abs(at_orig.z - at_trans.z) < 2 * eps
+                        and at_orig.Z == at_trans.Z
+                        and abs(at_orig.mag_vec[0] - at_trans.mag_vec[0]) < 2 * eps
+                        and abs(at_orig.mag_vec[1] - at_trans.mag_vec[1]) < 2 * eps
+                        and abs(at_orig.mag_vec[2] - at_trans.mag_vec[2]) < 2 * eps
                     ):
                         at_match = at_trans
-                    
+
                 if at_match == None:
                     # print("Wasn't able to find matching atom.")
                     return False
                 else:
                     transformed_atoms.remove(at_match)
-                    
+
             if transformed_atoms.__len__() == 0:
                 return True
             else:
@@ -384,13 +432,80 @@ class StructureFile:
                 for at2 in group:
                     if at1 != at2:
                         possible_center = (
-                            (at1.x + at2.x)/2,
-                            (at1.y + at2.y)/2,
-                            (at1.z + at2.z)/2
+                            (at1.x + at2.x) / 2,
+                            (at1.y + at2.y) / 2,
+                            (at1.z + at2.z) / 2,
                         )
-                        
+
                         if PT_check(possible_center, self.atoms):
                             isPT = True
                             centers.add(possible_center)
 
         return (isPT, list(centers))
+
+    # Equivalence
+
+    def find_translation_vectors(self, other_struct, lim_count = -1):
+        # attempts to find all teh translation vectors, that would give us other_struct from our struct
+        # if no vectors are found, the two structures are not translationally equivalent/symmetric
+        # if some vectors are found, the two structures are equivalent
+        
+        translation_vecs = []
+
+        for at1 in self.atoms:
+            for at2 in other_struct.atoms:
+                # make sure that the atoms have equivalent atom numbers
+                if at1.Z == at2.Z:
+                    trans_vec = (
+                        at2.x - at1.x,
+                        at2.y - at1.y,
+                        at2.z - at1.z
+                    )
+                    
+                    # check if the translation is valid for all other atoms as well
+                    is_valid = True
+                    for _at1 in self.atoms:
+                        p1 = (
+                            _at1.x,
+                            _at1.y,
+                            _at1.z
+                        )
+                        
+                        # we have to find some atom in the other structure that translationally corresponds
+                        has_corresponding_atom = False
+                        for _at2 in other_struct.atoms:
+                            p2 = (
+                                _at2.x,
+                                _at2.y,
+                                _at2.z
+                            )
+                            
+                            _psum = np.add(p1, trans_vec)
+                            _psum = lmap(_psum, lambda a: a%1.00000000000001)
+                            
+                            if _at1.Z == _at2.Z:
+                                # check if the positions are close enough
+                                if  np.linalg.norm(np.subtract(p2, _psum)) < 1e-4 :
+                                    has_corresponding_atom = True
+                                    break
+                                    
+                        if not has_corresponding_atom:
+                            # this translation vector is not valid
+                            is_valid = False
+                            break
+                        
+                    if is_valid:
+                        translation_vecs.append(trans_vec)
+                        
+                        if len(translation_vecs) >= lim_count and lim_count != -1:
+                            return translation_vecs
+        
+        return translation_vecs
+    
+    def translational_equivalence_check(self, other_struct):
+        # returns if two structures are translationally equivalent
+        proof_of_equivalence = self.find_translation_vectors(other_struct, 1)
+        are_equiv = len(proof_of_equivalence) > 0
+        
+        return are_equiv, proof_of_equivalence[0] if are_equiv else None
+        

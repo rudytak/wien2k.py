@@ -462,12 +462,13 @@ class MaterialFolder:
 
 if __name__ == "__main__":
     struct = StructureFile.load_materials_project(
-        "https://next-gen.materialsproject.org/materials/mp-20552?formula=Cr2As",  # load in mnte
+        "https://next-gen.materialsproject.org/materials/mp-1221644?formula=CrMnAs",  # load in mnte
         "credentials.json",
     )
 
-    mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
-    mf.open()
+    # mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
+    # mf.open()
+    
     # mf.manual_run(
     #     "CrSb_test_notSO",
     #     init_lapw_Parameters(
@@ -492,3 +493,4 @@ if __name__ == "__main__":
     #     params_so=init_so_lapw_Parameters(0, 0, 1, EMAX=10.0),
     #     auto_confirm=True,
     # )
+    pass
