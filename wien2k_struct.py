@@ -12,14 +12,265 @@ from time import perf_counter
 
 
 class StructureAtom:
+    symbol_to_number = {
+        "H": 1,
+        "He": 2,
+        "Li": 3,
+        "Be": 4,
+        "B": 5,
+        "C": 6,
+        "N": 7,
+        "O": 8,
+        "F": 9,
+        "Ne": 10,
+        "Na": 11,
+        "Mg": 12,
+        "Al": 13,
+        "Si": 14,
+        "P": 15,
+        "S": 16,
+        "Cl": 17,
+        "Ar": 18,
+        "K": 19,
+        "Ca": 20,
+        "Sc": 21,
+        "Ti": 22,
+        "V": 23,
+        "Cr": 24,
+        "Mn": 25,
+        "Fe": 26,
+        "Co": 27,
+        "Ni": 28,
+        "Cu": 29,
+        "Zn": 30,
+        "Ga": 31,
+        "Ge": 32,
+        "As": 33,
+        "Se": 34,
+        "Br": 35,
+        "Kr": 36,
+        "Rb": 37,
+        "Sr": 38,
+        "Y": 39,
+        "Zr": 40,
+        "Nb": 41,
+        "Mo": 42,
+        "Tc": 43,
+        "Ru": 44,
+        "Rh": 45,
+        "Pd": 46,
+        "Ag": 47,
+        "Cd": 48,
+        "In": 49,
+        "Sn": 50,
+        "Sb": 51,
+        "Te": 52,
+        "I": 53,
+        "Xe": 54,
+        "Cs": 55,
+        "Ba": 56,
+        "La": 57,
+        "Ce": 58,
+        "Pr": 59,
+        "Nd": 60,
+        "Pm": 61,
+        "Sm": 62,
+        "Eu": 63,
+        "Gd": 64,
+        "Tb": 65,
+        "Dy": 66,
+        "Ho": 67,
+        "Er": 68,
+        "Tm": 69,
+        "Yb": 70,
+        "Lu": 71,
+        "Hf": 72,
+        "Ta": 73,
+        "W": 74,
+        "Re": 75,
+        "Os": 76,
+        "Ir": 77,
+        "Pt": 78,
+        "Au": 79,
+        "Hg": 80,
+        "Tl": 81,
+        "Pb": 82,
+        "Bi": 83,
+        "Po": 84,
+        "At": 85,
+        "Rn": 86,
+        "Fr": 87,
+        "Ra": 88,
+        "Ac": 89,
+        "Th": 90,
+        "Pa": 91,
+        "U": 92,
+        "Np": 93,
+        "Pu": 94,
+        "Am": 95,
+        "Cm": 96,
+        "Bk": 97,
+        "Cf": 98,
+        "Es": 99,
+        "Fm": 100,
+        "Md": 101,
+        "No": 102,
+        "Lr": 103,
+        "Rf": 104,
+        "Db": 105,
+        "Sg": 106,
+        "Bh": 107,
+        "Hs": 108,
+        "Mt": 109,
+        "Ds": 110,
+        "Rg": 111,
+        "Cn": 112,
+        "Nh": 113,
+        "Fl": 114,
+        "Mc": 115,
+        "Lv": 116,
+        "Ts": 117,
+        "Og": 118,
+    }
+    number_to_symbol = {
+        1: "H",
+        2: "He",
+        3: "Li",
+        4: "Be",
+        5: "B",
+        6: "C",
+        7: "N",
+        8: "O",
+        9: "F",
+        10: "Ne",
+        11: "Na",
+        12: "Mg",
+        13: "Al",
+        14: "Si",
+        15: "P",
+        16: "S",
+        17: "Cl",
+        18: "Ar",
+        19: "K",
+        20: "Ca",
+        21: "Sc",
+        22: "Ti",
+        23: "V",
+        24: "Cr",
+        25: "Mn",
+        26: "Fe",
+        27: "Co",
+        28: "Ni",
+        29: "Cu",
+        30: "Zn",
+        31: "Ga",
+        32: "Ge",
+        33: "As",
+        34: "Se",
+        35: "Br",
+        36: "Kr",
+        37: "Rb",
+        38: "Sr",
+        39: "Y",
+        40: "Zr",
+        41: "Nb",
+        42: "Mo",
+        43: "Tc",
+        44: "Ru",
+        45: "Rh",
+        46: "Pd",
+        47: "Ag",
+        48: "Cd",
+        49: "In",
+        50: "Sn",
+        51: "Sb",
+        52: "Te",
+        53: "I",
+        54: "Xe",
+        55: "Cs",
+        56: "Ba",
+        57: "La",
+        58: "Ce",
+        59: "Pr",
+        60: "Nd",
+        61: "Pm",
+        62: "Sm",
+        63: "Eu",
+        64: "Gd",
+        65: "Tb",
+        66: "Dy",
+        67: "Ho",
+        68: "Er",
+        69: "Tm",
+        70: "Yb",
+        71: "Lu",
+        72: "Hf",
+        73: "Ta",
+        74: "W",
+        75: "Re",
+        76: "Os",
+        77: "Ir",
+        78: "Pt",
+        79: "Au",
+        80: "Hg",
+        81: "Tl",
+        82: "Pb",
+        83: "Bi",
+        84: "Po",
+        85: "At",
+        86: "Rn",
+        87: "Fr",
+        88: "Ra",
+        89: "Ac",
+        90: "Th",
+        91: "Pa",
+        92: "U",
+        93: "Np",
+        94: "Pu",
+        95: "Am",
+        96: "Cm",
+        97: "Bk",
+        98: "Cf",
+        99: "Es",
+        100: "Fm",
+        101: "Md",
+        102: "No",
+        103: "Lr",
+        104: "Rf",
+        105: "Db",
+        106: "Sg",
+        107: "Bh",
+        108: "Hs",
+        109: "Mt",
+        110: "Ds",
+        111: "Rg",
+        112: "Cn",
+        113: "Nh",
+        114: "Fl",
+        115: "Mc",
+        116: "Lv",
+        117: "Ts",
+        118: "Og",
+    }
+
+    @staticmethod
+    def init_symbol_maps():
+        for Z in range(1, 118 + 1):
+            symb = mendeleev.element(Z).symbol
+            StructureAtom.symbol_to_number[symb] = Z
+            StructureAtom.number_to_symbol[Z] = symb
+
     def __init__(self, x, y, z, Z, mag_vec=0):
         self.x = x
         self.y = y
         self.z = z
 
-        self.Z = Z
+        if StructureAtom.symbol_to_number == {} or StructureAtom.number_to_symbol == {}:
+            StructureAtom.init_symbol_maps()
+
+        self.Z = int(Z)
         self.symb = None
-        # self.get_symbol()
+        self.get_symbol()
 
         if type(mag_vec) == type(1) or type(mag_vec) == type(1.0):
             self.mag_vec = (mag_vec, 0, 0)
@@ -27,8 +278,7 @@ class StructureAtom:
             self.mag_vec = (mag_vec[0], mag_vec[1], mag_vec[2])
 
     def get_symbol(self):
-        if self.symb == None:
-            self.symb = mendeleev.element(int(self.Z)).symbol
+        self.symb = StructureAtom.number_to_symbol[self.Z]
         return self.symb
 
     def get_type_id(self):
@@ -110,12 +360,12 @@ class StructureFile:
     @staticmethod
     def parse_poscar(poscar_text):
         # start_time = perf_counter()
-        
+
         lines = poscar_text.strip().split("\n")
 
         title = lines[0]
         matrix_scale = float(lines[1].strip().split(" ")[0])
-        
+
         # set the unit to angstroms by default
         unit = "Ang"
         try:
@@ -123,10 +373,10 @@ class StructureFile:
         except:
             # keep the unit as default
             pass
-        
-        a_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[2].strip())]
-        b_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[3].strip())]
-        c_vec = [matrix_scale * float(v) for v in re.split(r'[ \t]+',lines[4].strip())]
+
+        a_vec = [matrix_scale * float(v) for v in re.split(r"[ \t]+", lines[2].strip())]
+        b_vec = [matrix_scale * float(v) for v in re.split(r"[ \t]+", lines[3].strip())]
+        c_vec = [matrix_scale * float(v) for v in re.split(r"[ \t]+", lines[4].strip())]
 
         (a, b, c, alpha, beta, gamma) = matrix2para([a_vec, b_vec, c_vec])
         alpha = alpha * 180 / math.pi
@@ -147,17 +397,18 @@ class StructureFile:
             Z = mendeleev.element(at).atomic_number
 
             for j in range(atom_counts[i]):
-                x, y, z = [float(v) for v in re.split(r'[ \t]+',lines[8 + ij].strip())[0:3]]
+                x, y, z = [
+                    float(v) for v in re.split(r"[ \t]+", lines[8 + ij].strip())[0:3]
+                ]
                 atoms.append(StructureAtom(x, y, z, Z))
                 ij += 1
 
         output = StructureFile(title, atoms, a, b, c, alpha, beta, gamma)
-        
+
         # end_time = perf_counter()
         # print(f"Time took to parse POSCAR: {(end_time - start_time):.4f}s")
-    
-        return output 
-    
+
+        return output
 
     @staticmethod
     def load_cif(filepath):
@@ -304,7 +555,11 @@ class StructureFile:
                 for _c in range(cc):
                     sorted_atoms += [
                         StructureAtom(
-                            (a.x + _a) / aa, (a.y + _b) / bb, (a.z + _c) / cc, a.Z
+                            (a.x + _a) / aa,
+                            (a.y + _b) / bb,
+                            (a.z + _c) / cc,
+                            a.Z,
+                            a.mag_vec,
                         )
                         for a in list(self.atoms)
                     ]
@@ -335,6 +590,51 @@ class StructureFile:
         self.non_eq_count = len(sorted_atoms)
 
         return text
+
+    def generate_poscar_corresponding_lstart_pattern(self, lstart_pattern):
+        # converts a lstart_pattern, that corresponds to the loaded poscar
+        # into a different lstart_pattern, that will keep the same flags for the same atomic posittions in space
+        # (this is due to the atoms getting sorted by the generate_poscar method)
+
+        # cell multiples
+        aa = self.cell_multiples["a"]
+        bb = self.cell_multiples["b"]
+        cc = self.cell_multiples["c"]
+
+        # copy and sort atoms by atomic number
+        sorted_atoms = []
+        for _a in range(aa):
+            for _b in range(bb):
+                for _c in range(cc):
+                    sorted_atoms += [
+                        StructureAtom(
+                            (a.x + _a) / aa,
+                            (a.y + _b) / bb,
+                            (a.z + _c) / cc,
+                            a.Z,
+                            a.mag_vec,
+                        )
+                        for a in list(self.atoms)
+                    ]
+        sorted_atoms.sort(key=lambda a: a.Z)
+
+        # print(sorted_atoms)
+
+        output_pattern = []
+        for at in sorted_atoms:
+            # find the corresponding atom in the original array
+            for orig_at in self.atoms:
+                if (
+                    abs(orig_at.x - ((at.x * aa) % 1.00000000000001)) < 1e-5
+                    and abs(orig_at.y - ((at.y * bb) % 1.00000000000001)) < 1e-5
+                    and abs(orig_at.z - ((at.z * cc) % 1.00000000000001)) < 1e-5
+                    and orig_at.Z == at.Z
+                ):
+                    o_ind = self.atoms.index(orig_at)
+                    output_pattern.append(lstart_pattern[o_ind % len(lstart_pattern)])
+
+        # print(lstart_pattern, output_pattern)
+        return output_pattern
 
     def get_logs(self, do_print=True):
         if do_print:
@@ -443,69 +743,63 @@ class StructureFile:
 
         return (isPT, list(centers))
 
-    # Equivalence
+    # --------------- Equivalence ---------------
 
-    def find_translation_vectors(self, other_struct, lim_count = -1):
+    def find_translation_vectors(self, other_struct, lim_count=-1):
         # attempts to find all teh translation vectors, that would give us other_struct from our struct
         # if no vectors are found, the two structures are not translationally equivalent/symmetric
         # if some vectors are found, the two structures are equivalent
-        
+
+        def check_translation_match(src_atoms, target_atoms, translation_vec):
+            # check if the translation is valid for all other atoms as well
+            is_valid = True
+            for _at1 in src_atoms:
+                p1 = (_at1.x, _at1.y, _at1.z)
+
+                # we have to find some atom in the other structure that translationally corresponds
+                has_corresponding_atom = False
+                for _at2 in target_atoms:
+                    p2 = (_at2.x, _at2.y, _at2.z)
+
+                    _psum = np.add(p1, translation_vec)
+                    _psum = lmap(_psum, lambda a: a % 1.00000000000001)
+
+                    if _at1.Z == _at2.Z:
+                        # check if the positions are close enough
+                        if np.linalg.norm(np.subtract(p2, _psum)) < 1e-4:
+                            has_corresponding_atom = True
+                            break
+
+                if not has_corresponding_atom:
+                    # this translation vector is not valid
+                    is_valid = False
+                    break
+            return is_valid
+
         translation_vecs = []
 
         for at1 in self.atoms:
             for at2 in other_struct.atoms:
-                # make sure that the atoms have equivalent atom numbers
+                # make sure that the atoms have equivalent atomic numbers
                 if at1.Z == at2.Z:
-                    trans_vec = (
-                        at2.x - at1.x,
-                        at2.y - at1.y,
-                        at2.z - at1.z
+                    trans_vec = (at2.x - at1.x, at2.y - at1.y, at2.z - at1.z)
+
+                    is_valid = check_translation_match(
+                        self.atoms, other_struct.atoms, trans_vec
                     )
-                    
-                    # check if the translation is valid for all other atoms as well
-                    is_valid = True
-                    for _at1 in self.atoms:
-                        p1 = (
-                            _at1.x,
-                            _at1.y,
-                            _at1.z
-                        )
-                        
-                        # we have to find some atom in the other structure that translationally corresponds
-                        has_corresponding_atom = False
-                        for _at2 in other_struct.atoms:
-                            p2 = (
-                                _at2.x,
-                                _at2.y,
-                                _at2.z
-                            )
-                            
-                            _psum = np.add(p1, trans_vec)
-                            _psum = lmap(_psum, lambda a: a%1.00000000000001)
-                            
-                            if _at1.Z == _at2.Z:
-                                # check if the positions are close enough
-                                if  np.linalg.norm(np.subtract(p2, _psum)) < 1e-4 :
-                                    has_corresponding_atom = True
-                                    break
-                                    
-                        if not has_corresponding_atom:
-                            # this translation vector is not valid
-                            is_valid = False
-                            break
-                        
                     if is_valid:
                         translation_vecs.append(trans_vec)
-                        
+
                         if len(translation_vecs) >= lim_count and lim_count != -1:
                             return translation_vecs
-        
+
         return translation_vecs
-    
+
     def translational_equivalence_check(self, other_struct):
         # returns if two structures are translationally equivalent
         proof_of_equivalence = self.find_translation_vectors(other_struct, 1)
         are_equiv = len(proof_of_equivalence) > 0
-        
+
         return are_equiv, proof_of_equivalence[0] if are_equiv else None
-        
+
+    # --------------- Magnetism ---------------
