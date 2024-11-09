@@ -1,0 +1,7 @@
+pywinauto
+pytesseract
+paramiko
+scp
+mendeleev
+mp_api
+pyxtal

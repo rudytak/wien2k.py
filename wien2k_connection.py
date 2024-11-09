@@ -43,7 +43,7 @@ class CMD_Window:
 
     # ---------------- INPUT ----------------
 
-    def type(self, text, wait_after=0.1, speed_multiplier=10, do_ENTER=True):
+    def type(self, text, wait_after=0.5, speed_multiplier=10, do_ENTER=True):
         self.bring_forward()
         # type the text
         self.handle.type_keys(text, with_spaces=True, pause=0.05 / speed_multiplier)
@@ -159,7 +159,7 @@ class SCP_Connection:
             SCP_Connection.ping_growth[cred["host1"]] = abs(
                 sum(times2) / len(times2) - sum(times1) / len(times1)
             ) / (1024 - 32)
-
+            
             # create the proxy
             cmd_win.type(
                 f"ssh {cred['username1']}@{cred['host1']} -L {port}:{cred['host2']}:22",

@@ -466,8 +466,8 @@ if __name__ == "__main__":
         "credentials.json",
     )
 
-    # mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
-    # mf.open()
+    mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
+    mf.open()
     
     # mf.manual_run(
     #     "CrSb_test_notSO",
