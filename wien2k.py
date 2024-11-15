@@ -95,9 +95,14 @@ class MaterialFolder:
                 lines = "\n".join(lines)
 
                 success_status = (
-                    (f"{self.material}$" in lines)
-                    and ("run_lapw" not in lines)
-                    or ("> stop" in lines)
+                    (f"{self.material}$" in lines) and ("run_lapw" not in lines)
+                ) or ("> stop" in lines)
+                print(
+                    lines,
+                    success_status,
+                    (f"{self.material}$" in lines),
+                    ("run_lapw" not in lines),
+                    ("> stop" in lines),
                 )
                 not_converged_status = "SCF NOT CONVERGED" in lines
                 error_status = "stop error" in lines
@@ -468,7 +473,7 @@ if __name__ == "__main__":
 
     mf = MaterialFolder("credentials.json", "CrSb", structure=struct)
     mf.open()
-    
+
     # mf.manual_run(
     #     "CrSb_test_notSO",
     #     init_lapw_Parameters(

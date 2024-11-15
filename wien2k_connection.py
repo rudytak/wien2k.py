@@ -43,7 +43,7 @@ class CMD_Window:
 
     # ---------------- INPUT ----------------
 
-    def type(self, text, wait_after=0.5, speed_multiplier=10, do_ENTER=True):
+    def type(self, text, wait_after=0.1, speed_multiplier=10, do_ENTER=True):
         self.bring_forward()
         # type the text
         self.handle.type_keys(text, with_spaces=True, pause=0.05 / speed_multiplier)
@@ -63,7 +63,7 @@ class CMD_Window:
         # save the temporary screenshot
         img = self.handle.capture_as_image()
         w, h = img.size
-        img = img.crop((10, 70, w - 10, h - 10))
+        img = img.crop((10, 70, 0.825 * w - 10, h - 10))
 
         # analyze
         pytesseract.tesseract_cmd = TESSERACT_PATH
@@ -167,6 +167,7 @@ class SCP_Connection:
             )
             cmd_win.type(cred['password1'])
             SCP_Connection.windows[cred["host1"]] = cmd_win
+            time.sleep(2)
 
         # return the port of the running proxy
         return SCP_Connection.ports[cred["host1"]]
@@ -182,13 +183,20 @@ class SCP_Connection:
         self.ssh_client = SSHClient()
         self.ssh_client.load_system_host_keys()
         # connect it
-        self.ssh_client.connect(
-            "localhost",
-            username=cred["username2"],
-            port=str(port),
-            password=cred["password2"],
-            look_for_keys=False,
-        )
+        try:
+            self.ssh_client.connect(
+                "localhost",
+                username=cred["username2"],
+                port=str(port),
+                password=cred["password2"],
+                look_for_keys=False,
+            )
+        except:
+            # if the connection fails, the 2222 server is probably not running
+            # so reset the global servers running and rerun the 2222 server
+            SCP_Connection.ports = {}
+            self.connect_twohop()
+            return
 
         # create a scp client
         self.scp_client = SCPClient(self.ssh_client.get_transport())

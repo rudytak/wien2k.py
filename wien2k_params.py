@@ -207,7 +207,7 @@ class init_lapw_Parameters:
         MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
         MF.cmd.type("^X", 1, do_ENTER=False)
 
-        if "DO YOU WANT TO USE THE NEW" in "\n".join(MF.cmd.read_output(10)):
+        if "DO YOU WANT TO USE THE NEW" in "\n".join(MF.cmd.read_output(10)).upper():
             MF.cmd.type("n", 0.5)
 
             # TODO: get this working for cell simplification
@@ -215,15 +215,15 @@ class init_lapw_Parameters:
             # MF.cmd.type(self.text_params["nearest_neighbor"], 0.5)
             # MF.cmd.type("^X", 1, do_ENTER=False)
 
-        MF.cmd.type("c", 1)
+        MF.cmd.type("c", 3)
         MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
+        MF.cmd.type("c", 3)
         MF.cmd.type("^X", 1, do_ENTER=False)
         MF.cmd.type("c", 1)
 
         if "STOP: YOU MUST MOVE THE ORIGIN OF THE UNIT CELL" in "\n".join(
             MF.cmd.read_output(10)
-        ):
+        ).upper():
             # TODO: moving around cell origin if necessary
             pass
 
@@ -237,22 +237,22 @@ class init_lapw_Parameters:
                     0.2,
                 )
         MF.cmd.type(self.text_params["calculation_method"], 0.5)
-        MF.cmd.type(self.text_params["separation_energy_eV"], 0.5)
+        MF.cmd.type(self.text_params["separation_energy_eV"], 3)
         MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+        MF.cmd.type("c", 3)
+        MF.cmd.type("^X", 3, do_ENTER=False)
         MF.cmd.type("^X", 1, do_ENTER=False)
 
         MF.cmd.type(self.text_params["kpoints"], 0.5)
         if self.text_params["kpoints"] == "-1":
             MF.cmd.type(self.text_params["x_kdensity"], 0.5)
-        MF.cmd.type(self.text_params["kshift"], 0.5)
+        MF.cmd.type(self.text_params["kshift"], 3)
         MF.cmd.type("^X", 1, do_ENTER=False)
-        MF.cmd.type("c", 1)
+        MF.cmd.type("c", 3)
         MF.cmd.type("^X", 1, do_ENTER=False)
 
-        MF.cmd.type(self.text_params["spin_polarized"], 0.5)
-        MF.cmd.type("^X", 1, do_ENTER=False)
+        MF.cmd.type(self.text_params["spin_polarized"], 3)
+        MF.cmd.type("^X", 3, do_ENTER=False)
         MF.cmd.type("^X", 1, do_ENTER=False)
         if self.text_params["spin_polarized"] == "y":
             MF.cmd.type(self.text_params["x_antiferromagnetic"], 0.5)
